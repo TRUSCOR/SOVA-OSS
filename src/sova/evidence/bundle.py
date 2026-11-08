@@ -154,7 +154,7 @@ def evidence_to_sarif(bundle: EvidenceBundle) -> dict[str, Any]:
                 "tool": {
                     "driver": {
                         "name": "SOVA OSS",
-                        "informationUri": "https://github.com/Gautam-R-Patil/S.O.V.A---OSS---TRUSCOR",
+                        "informationUri": "https://github.com/TRUSCOR/SOVA-OSS",
                         "rules": [
                             {
                                 "id": bundle.finding_id,

@@ -373,5 +373,5 @@ Pre-alpha engineering-foundation version. It has not been published to PyPI
 and does not implement the security capability commands described in the
 project vision.
 
-[Unreleased]: https://github.com/Gautam-R-Patil/S.O.V.A---OSS---TRUSCOR/compare/v0.1.0a0...HEAD
-[0.1.0a0]: https://github.com/Gautam-R-Patil/S.O.V.A---OSS---TRUSCOR/releases/tag/v0.1.0a0
+[Unreleased]: https://github.com/TRUSCOR/SOVA-OSS/compare/v0.1.0a0...HEAD
+[0.1.0a0]: https://github.com/TRUSCOR/SOVA-OSS/releases/tag/v0.1.0a0

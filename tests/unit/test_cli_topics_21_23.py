@@ -105,7 +105,7 @@ def test_arena_leaderboard_ctf_and_replay_clip_cli(
                     "title": "Safe deterministic fixture",
                     "difficulty": "beginner",
                     "sourceProject": "SOVA OSS",
-                    "sourceUrl": "https://github.com/Gautam-R-Patil/S.O.V.A---OSS---TRUSCOR",
+                    "sourceUrl": "https://github.com/TRUSCOR/SOVA-OSS",
                     "sourceLicense": "Apache-2.0",
                     "setupMode": "bundled-synthetic",
                     "artifact": "arena/attempt-0000.sova",

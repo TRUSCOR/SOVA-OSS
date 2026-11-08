@@ -56,10 +56,10 @@ dependencies = [
 sova = "sova.cli:main"
 
 [project.urls]
-Documentation = "https://github.com/Gautam-R-Patil/S.O.V.A---OSS---TRUSCOR#readme"
-Issues = "https://github.com/Gautam-R-Patil/S.O.V.A---OSS---TRUSCOR/issues"
-Repository = "https://github.com/Gautam-R-Patil/S.O.V.A---OSS---TRUSCOR"
-Security = "https://github.com/Gautam-R-Patil/S.O.V.A---OSS---TRUSCOR/security/policy"
+Documentation = "https://github.com/TRUSCOR/SOVA-OSS#readme"
+Issues = "https://github.com/TRUSCOR/SOVA-OSS/issues"
+Repository = "https://github.com/TRUSCOR/SOVA-OSS"
+Security = "https://github.com/TRUSCOR/SOVA-OSS/security/policy"
 
 [dependency-groups]
 dev = [

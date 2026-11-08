@@ -233,7 +233,7 @@ def test_arena_creates_trace_and_capsule_then_static_leaderboard_and_ctf(
                 "Conditional marker",
                 "beginner",
                 "SOVA bundled synthetic target",
-                "https://github.com/Gautam-R-Patil/S.O.V.A---OSS---TRUSCOR",
+                "https://github.com/TRUSCOR/SOVA-OSS",
                 "Apache-2.0",
                 "bundled-synthetic",
                 artifact,
