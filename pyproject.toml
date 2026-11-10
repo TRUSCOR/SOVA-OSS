@@ -49,7 +49,7 @@ classifiers = [
 dependencies = [
   "cryptography>=50,<51",
   "jsonschema>=4.26,<5",
-  "jsonschema-rs>=0.49.2,<0.50",
+  "jsonschema-rs>=0.49.2,<0.61",
 ]
 
 [project.scripts]
@@ -70,7 +70,7 @@ dev = [
   "pre-commit>=4.5,<5",
   "pytest>=9,<10",
   "pytest-cov>=7,<8",
-  "ruff>=0.15,<0.17",
+  "ruff>=0.15,<0.18",
   "types-jsonschema>=4.26,<5",
   "websocket-client>=1.8,<2",
 ]
