@@ -62,11 +62,11 @@
 
 > [!TIP]
 > **Preprint, version 1.1 (2026-11-13):** [.sova: Portable, Evidence-Bounded
-> Reproduction of AI-Agent Security Findings](https://github.com/TRUSCOR/sova-research).
+> Reproduction of AI-Agent Security Findings](https://github.com/TRUSCOR/research).
 > Its results ship as `.sova` files that this package verifies offline: four
 > real prompt-injection findings, every reply the paper read, and a 629-pair
 > GPT-4o re-run study whose headline numbers `sova compare` recomputes. Start
-> with [the findings](https://github.com/TRUSCOR/sova-research/tree/main/artifacts/pf-v1.1/findings).
+> with [the findings](https://github.com/TRUSCOR/research/tree/main/artifacts/pf-v1.1/findings).
 
 ## Implemented foundation, mapping, runtime, capsules, traces, and ecosystem boundaries
 
@@ -1000,7 +1000,7 @@ The principal research directions are:
 9. Provenance-separated capability closure against declared and runtime graph baselines.
 10. Evidence-firewalled adjudication against transcript-level judge injection.
 
-Research claims will require predeclared protocols, strong baselines, repeated trials, ground truth, uncertainty, ethics review, and reproducible artifacts. The first preprint built on SOVA OSS, with its frozen protocols, every result file, and its findings packaged as `.sova` files, is public in [sova-research](https://github.com/TRUSCOR/sova-research).
+Research claims will require predeclared protocols, strong baselines, repeated trials, ground truth, uncertainty, ethics review, and reproducible artifacts. The first preprint built on SOVA OSS, with its frozen protocols, every result file, and its findings packaged as `.sova` files, is public in [sova-research](https://github.com/TRUSCOR/research).
 
 The Topic 01 evidence controls are now public:
 
@@ -1104,7 +1104,7 @@ Read [the complete open/private decision](./docs/decisions/0003-open-source-and-
 
 ## Licence, attribution, and citation
 
-SOVA OSS was created by Gautam R. Patil, who started this repository on 28 July 2026, and is developed by TRUSCOR Private Limited. The original v1 prototype is preserved at [Gautam-R-Patil/SOVA-OSS](https://github.com/Gautam-R-Patil/SOVA-OSS); papers built on SOVA are released at [TRUSCOR/sova-research](https://github.com/TRUSCOR/sova-research).
+SOVA OSS was created by Gautam R. Patil, who started this repository on 28 July 2026, and is developed by TRUSCOR Private Limited. The original v1 prototype is preserved at [Gautam-R-Patil/SOVA-OSS](https://github.com/Gautam-R-Patil/SOVA-OSS); papers built on SOVA are released at [TRUSCOR/research](https://github.com/TRUSCOR/research).
 
 SOVA OSS is licensed under the [Apache License 2.0](./LICENSE). Developers, researchers, individuals, enterprises, and commercial users may use, modify, distribute, and build on the public repository subject to that licence.
 
