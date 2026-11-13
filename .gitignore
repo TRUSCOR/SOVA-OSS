@@ -78,6 +78,7 @@ audit-requirements.txt
 /.validation/
 /.test-artifacts/
 /.test-tmp-*/
+/.pytest-tmp/
 /.tmp-*/
 tmp/
 temp/
