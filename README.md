@@ -60,6 +60,14 @@
 > interactive authorization; target-specific procedures, accounts, privacy
 > review, and evidence oracles remain the operator's responsibility.
 
+> [!TIP]
+> **Preprint, version 1.1 (2026-11-13):** [.sova: Portable, Evidence-Bounded
+> Reproduction of AI-Agent Security Findings](https://github.com/Gautam-R-Patil/sova-research).
+> Its results ship as `.sova` files that this package verifies offline: four
+> real prompt-injection findings, every reply the paper read, and a 629-pair
+> GPT-4o re-run study whose headline numbers `sova compare` recomputes. Start
+> with [the findings](https://github.com/Gautam-R-Patil/sova-research/tree/main/artifacts/pf-v1.1/findings).
+
 ## Implemented foundation, mapping, runtime, capsules, traces, and ecosystem boundaries
 
 The implemented Topic 02–27 engineering foundation is intentionally
@@ -992,7 +1000,7 @@ The principal research directions are:
 9. Provenance-separated capability closure against declared and runtime graph baselines.
 10. Evidence-firewalled adjudication against transcript-level judge injection.
 
-Research claims will require predeclared protocols, strong baselines, repeated trials, ground truth, uncertainty, ethics review, and reproducible artifacts. Paper and patent decisions will be made before irreversible public disclosure.
+Research claims will require predeclared protocols, strong baselines, repeated trials, ground truth, uncertainty, ethics review, and reproducible artifacts. The first preprint built on SOVA OSS, with its frozen protocols, every result file, and its findings packaged as `.sova` files, is public in [sova-research](https://github.com/Gautam-R-Patil/sova-research).
 
 The Topic 01 evidence controls are now public:
 
