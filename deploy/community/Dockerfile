@@ -8,7 +8,7 @@ ARG SOVA_WHEEL
 LABEL org.opencontainers.image.title="SOVA OSS community registry"
 LABEL org.opencontainers.image.description="Pre-alpha SOVA community registry runtime"
 LABEL org.opencontainers.image.licenses="Apache-2.0"
-LABEL org.opencontainers.image.source="https://github.com/Gautam-R-Patil/S.O.V.A---OSS---TRUSCOR"
+LABEL org.opencontainers.image.source="https://github.com/TRUSCOR/SOVA-OSS"
 LABEL org.opencontainers.image.vendor="SOVA OSS contributors"
 LABEL org.sova.runtime.uid="65532"
 LABEL org.sova.runtime.gid="65532"

@@ -5,8 +5,8 @@
 SOVA OSS is pre-alpha. The canonical source-checkout path is:
 
 ```console
-git clone https://github.com/Gautam-R-Patil/S.O.V.A---OSS---TRUSCOR.git
-cd S.O.V.A---OSS---TRUSCOR
+git clone https://github.com/TRUSCOR/SOVA-OSS.git
+cd SOVA-OSS
 uv sync --locked
 uv run sova --version
 ```

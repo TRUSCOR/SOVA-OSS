@@ -1,9 +1,9 @@
 blank_issues_enabled: false
 contact_links:
   - name: Private security report
-    url: https://github.com/Gautam-R-Patil/S.O.V.A---OSS---TRUSCOR/security/advisories/new
+    url: https://github.com/TRUSCOR/SOVA-OSS/security/advisories/new
     about: Report a possible SOVA vulnerability privately. If unavailable, follow SECURITY.md.
 
   - name: Private invention review
-    url: https://github.com/Gautam-R-Patil/S.O.V.A---OSS---TRUSCOR/blob/main/docs/governance/invention-handling.md
+    url: https://github.com/TRUSCOR/SOVA-OSS/blob/main/docs/governance/invention-handling.md
     about: Do not disclose a potentially patentable or confidential mechanism in a public issue.

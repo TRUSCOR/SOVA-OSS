@@ -6,7 +6,7 @@ authors:
   - family-names: "Patil"
     given-names: "Gautam R."
   - name: "TRUSCOR"
-repository-code: "https://github.com/Gautam-R-Patil/S.O.V.A---OSS---TRUSCOR"
+repository-code: "https://github.com/TRUSCOR/SOVA-OSS"
 url: "https://truscor.org"
 license: "Apache-2.0"
 keywords:

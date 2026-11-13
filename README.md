@@ -15,7 +15,7 @@
 
 <p align="center">
   <a href="https://truscor.org"><img alt="TRUSCOR" src="https://img.shields.io/badge/TRUSCOR-Project%20Home-0B8793?style=for-the-badge"></a>
-  <a href="https://github.com/Gautam-R-Patil/S.O.V.A---OSS---TRUSCOR"><img alt="Status" src="https://img.shields.io/badge/STATUS-PRE--ALPHA-FFB000?style=for-the-badge"></a>
+  <a href="https://github.com/TRUSCOR/SOVA-OSS"><img alt="Status" src="https://img.shields.io/badge/STATUS-PRE--ALPHA-FFB000?style=for-the-badge"></a>
   <a href="./LICENSE"><img alt="Apache License 2.0" src="https://img.shields.io/badge/LICENSE-Apache--2.0-D22128?style=for-the-badge"></a>
   <img alt="Local first" src="https://img.shields.io/badge/LOCAL--FIRST-YES-00B8D9?style=for-the-badge">
   <img alt="Telemetry" src="https://img.shields.io/badge/TELEMETRY-OFF%20BY%20DEFAULT-172B4D?style=for-the-badge">
@@ -66,8 +66,8 @@ The implemented Topic 02–27 engineering foundation is intentionally
 experimental and honest:
 
 ```bash
-git clone https://github.com/Gautam-R-Patil/S.O.V.A---OSS---TRUSCOR.git
-cd S.O.V.A---OSS---TRUSCOR
+git clone https://github.com/TRUSCOR/SOVA-OSS.git
+cd SOVA-OSS
 uv sync --locked
 uv run sova --version
 uv run python -m pytest
@@ -1153,7 +1153,7 @@ Never open public issues containing live credentials, private traces, unpatched 
   </tr>
   <tr>
     <td><strong>SOVA repository</strong></td>
-    <td><a href="https://github.com/Gautam-R-Patil/S.O.V.A---OSS---TRUSCOR">Gautam-R-Patil/S.O.V.A---OSS---TRUSCOR</a></td>
+    <td><a href="https://github.com/TRUSCOR/SOVA-OSS">TRUSCOR/SOVA-OSS</a></td>
   </tr>
 </table>
 

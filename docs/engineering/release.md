@@ -51,7 +51,7 @@ sova release verify-checksums ./dist ./dist/SHA256SUMS
 Verify a downloaded candidate online with:
 
 ```console
-gh attestation verify PATH/TO/ARTIFACT -R Gautam-R-Patil/S.O.V.A---OSS---TRUSCOR
+gh attestation verify PATH/TO/ARTIFACT -R TRUSCOR/SOVA-OSS
 ```
 
 The local MCP tool surface is separately pinned by `sova check --self`; a schema
