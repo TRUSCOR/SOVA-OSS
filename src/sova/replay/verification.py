@@ -253,6 +253,23 @@ def verify_artifact(
                 require_signature=require_signature,
                 required_key_id=required_key_id,
             )
+        if require_signature or required_key_id is not None:
+            # Capsules carry no signature of their own; a signature policy must
+            # fail closed rather than pass silently (matches the Node verifier).
+            return ArtifactVerification(
+                artifact_type,
+                VerificationState.UNSUPPORTED,
+                (
+                    _check(
+                        "signature-policy",
+                        CheckState.UNSUPPORTED,
+                        "signature policy is supported only for sova.trace; "
+                        "verify each embedded trace with the policy instead",
+                    ),
+                ),
+                (),
+                "SOVA-VERIFY-CAPSULE-SIGNATURE-POLICY",
+            )
         return _capsule_checks(path)
     except (FormatError, OSError) as error:
         code = error.issue.code if isinstance(error, FormatError) else "SOVA-IO-ERROR"

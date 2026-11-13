@@ -146,6 +146,11 @@ def test_lint_verify_format_and_json_validation_commands(
     assert verification["state"] == "partial"
     assert verification["objectCount"] == 1
     assert verification["offline"] is True
+    for policy in (["--require-signature"], ["--key-id", "sova:key:absent"]):
+        assert main(["verify", *policy, str(capsule)]) == 4
+        refused = json.loads(capfd.readouterr().out)
+        assert refused["state"] == "unsupported"
+        assert refused["errorCode"] == "SOVA-VERIFY-CAPSULE-SIGNATURE-POLICY"
     assert main(["validate", str(scenario)]) == 0
     assert capfd.readouterr().out == "VALID\n"
     assert main(["format", str(scenario)]) == 0
