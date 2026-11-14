@@ -7,6 +7,7 @@ import hashlib
 import os
 import re
 import zipfile
+import zlib
 from dataclasses import asdict, dataclass
 from pathlib import Path, PurePosixPath
 from typing import Any
@@ -227,6 +228,17 @@ class PackageWriter:
         return digest
 
 
+def _read_member(archive: zipfile.ZipFile, name: str) -> bytes:
+    """Read one archive member; a damaged member is an integrity failure, never a crash."""
+    try:
+        return archive.read(name)
+    except (zipfile.BadZipFile, zlib.error, EOFError, OSError, RuntimeError) as error:
+        raise FormatError(
+            "SOVA-PACKAGE-INTEGRITY",
+            f"archive member is damaged and cannot be read: {name}",
+        ) from error
+
+
 class PackageReader:
     """Inspect and verify a package without extracting or executing its content."""
 
@@ -314,7 +326,7 @@ class PackageReader:
     def raw_manifest_bytes(self) -> bytes:
         """Return the bounded exact manifest bytes without interpreting them."""
         with self._checked_archive() as archive:
-            return archive.read("manifest.json")
+            return _read_member(archive, "manifest.json")
 
     def manifest(self, expected_type: str | None = None) -> dict[str, Any]:
         """Read and validate the root manifest."""
@@ -363,7 +375,7 @@ class PackageReader:
                     },
                 )
             for descriptor in descriptors:
-                data = archive.read(descriptor.path)
+                data = _read_member(archive, descriptor.path)
                 if len(data) != descriptor.size or sha256_digest(data) != descriptor.digest:
                     raise FormatError(
                         "SOVA-PACKAGE-INTEGRITY",
@@ -380,7 +392,7 @@ class PackageReader:
     def read_object(self, descriptor: ContentDescriptor) -> bytes:
         """Read one verified object without extracting the archive."""
         with self._checked_archive() as archive:
-            data = archive.read(descriptor.path)
+            data = _read_member(archive, descriptor.path)
         if len(data) != descriptor.size or sha256_digest(data) != descriptor.digest:
             raise FormatError(
                 "SOVA-PACKAGE-INTEGRITY",

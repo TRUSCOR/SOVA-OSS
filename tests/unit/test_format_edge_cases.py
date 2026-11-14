@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import math
 import zipfile
-from dataclasses import replace
+from dataclasses import asdict, replace
 from typing import TYPE_CHECKING
 
 import pytest
@@ -323,3 +323,30 @@ def test_schema_root_and_unknown_type_fail_visibly() -> None:
     with pytest.raises(FormatError) as unsupported:
         validate_document({"artifactType": "unknown"})
     assert unsupported.value.issue.code == "SOVA-SCHEMA-UNSUPPORTED-TYPE"
+
+
+def test_reader_reports_a_damaged_member_as_an_integrity_failure(tmp_path: Path) -> None:
+    """A corrupted member must fail verification with an error code, never crash."""
+    archive_path = tmp_path / "damaged.zip"
+    payload = b"evidence " * 64
+    with zipfile.ZipFile(archive_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        archive.writestr("manifest.json", b"{}")
+        archive.writestr("blobs/data.bin", payload)
+    raw = bytearray(archive_path.read_bytes())
+    marker = raw.find(b"blobs/data.bin") + len(b"blobs/data.bin")
+    raw[marker + 5] ^= 0xFF  # flip one byte inside the compressed member data
+    archive_path.write_bytes(bytes(raw))
+    descriptor = ContentDescriptor(
+        role="attachment",
+        path="blobs/data.bin",
+        mediaType="application/octet-stream",
+        digest="sha256:" + "0" * 64,
+        size=len(payload),
+    )
+    with pytest.raises(FormatError) as caught:
+        PackageReader(archive_path).read_object(descriptor)
+    assert caught.value.issue.code == "SOVA-PACKAGE-INTEGRITY"
+    with pytest.raises(FormatError) as caught_index:
+        PackageReader(archive_path).verify_object_index([asdict(descriptor)])
+    allowed = {"SOVA-PACKAGE-INTEGRITY", "SOVA-PACKAGE-INDEX-MISMATCH"}
+    assert caught_index.value.issue.code in allowed
