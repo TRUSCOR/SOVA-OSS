@@ -20,10 +20,10 @@ def _check_tag(tag: str) -> subprocess.CompletedProcess[str]:
 
 
 def test_release_tag_must_match_package_version() -> None:
-    accepted = _check_tag("v0.1.0a0")
-    rejected = _check_tag("v0.1.0")
+    accepted = _check_tag("v0.1.0")
+    rejected = _check_tag("v0.1.0a0")
 
     assert accepted.returncode == 0
-    assert accepted.stdout == "RELEASE_VERSION_CHECK=PASS: v0.1.0a0\n"
+    assert accepted.stdout == "RELEASE_VERSION_CHECK=PASS: v0.1.0\n"
     assert rejected.returncode == 1
     assert "RELEASE_VERSION_CHECK=FAILED" in rejected.stdout

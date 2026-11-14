@@ -93,7 +93,8 @@ uv build
 The result is a platform-independent SOVA wheel and source distribution under
 `dist/`. Runtime installation also resolves the locked JSON Schema validators;
 `jsonschema-rs` is distributed as a platform wheel on supported targets. Build
-outputs are ignored. The pre-alpha package has not been published to PyPI.
+outputs are ignored. Releases are published to PyPI as `sova-oss` by the
+`publish.yml` workflow (see [release](release.md)).
 
 ## Platform notes
 

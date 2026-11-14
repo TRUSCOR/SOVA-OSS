@@ -2,7 +2,8 @@
 
 # Release process
 
-Topic 02 establishes the release mechanism; no package has been published.
+Releases are published to PyPI as `sova-oss`. The first was `0.1.0`; what it
+freezes is listed in [api-stability](../governance/api-stability.md).
 
 ## Version domains
 
@@ -41,6 +42,24 @@ not publish to a package index.
 This is intentional: a
 pushed tag or candidate attestation is not a substitute for founder/publication
 approval, and an attestation must still be verified by consumers.
+
+## Publishing to PyPI
+
+`.github/workflows/publish.yml` publishes one tagged release through PyPI Trusted
+Publishing. No API token exists: PyPI accepts uploads only from that workflow, in
+`TRUSCOR/SOVA-OSS`, in the GitHub environment named after the index. It runs only
+when dispatched by hand with the tag and the index:
+
+```console
+gh workflow run publish.yml -R TRUSCOR/SOVA-OSS -f tag=v0.1.0 -f index=testpypi
+gh workflow run publish.yml -R TRUSCOR/SOVA-OSS -f tag=v0.1.0 -f index=pypi
+```
+
+The build job checks out the exact tag, requires it to match the package version
+(`scripts/check_release_version.py`), runs the test suite, builds the wheel and
+sdist, installs the wheel in a clean environment and runs it, and writes
+checksums. The publish job uploads those same files with PyPI attestations. A
+version on PyPI cannot be replaced; a fix is a new patch version.
 
 Local offline verification:
 

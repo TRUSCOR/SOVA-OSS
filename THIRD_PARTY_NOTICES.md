@@ -1,6 +1,6 @@
 # Third-party dependency and tool notices
 
-SOVA OSS `0.1.0a0` uses JSON Schema 2020-12 validators and an optional signing
+SOVA OSS `0.1.0` uses JSON Schema 2020-12 validators and an optional signing
 extra. The following projects support the runtime, build, test, review, or
 automation workflow and are not vendored into this repository.
 

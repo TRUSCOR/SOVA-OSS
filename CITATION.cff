@@ -9,6 +9,8 @@ authors:
 repository-code: "https://github.com/TRUSCOR/SOVA-OSS"
 url: "https://truscor.org"
 license: "Apache-2.0"
+version: "0.1.0"
+date-released: "2026-11-15"
 keywords:
   - "AI agent security"
   - "adversarial testing"

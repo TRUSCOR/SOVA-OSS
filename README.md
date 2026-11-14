@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./assets/sova-owl-logo.svg" width="190" alt="SOVA owl logo" />
+  <img src="https://raw.githubusercontent.com/TRUSCOR/SOVA-OSS/main/assets/sova-owl-logo.svg" width="190" alt="SOVA owl logo" />
 </p>
 
 <h1 align="center">S.O.V.A.</h1>
@@ -15,8 +15,8 @@
 
 <p align="center">
   <a href="https://truscor.org"><img alt="TRUSCOR" src="https://img.shields.io/badge/TRUSCOR-Project%20Home-0B8793?style=for-the-badge"></a>
-  <a href="https://github.com/TRUSCOR/SOVA-OSS"><img alt="Status" src="https://img.shields.io/badge/STATUS-PRE--ALPHA-FFB000?style=for-the-badge"></a>
-  <a href="./LICENSE"><img alt="Apache License 2.0" src="https://img.shields.io/badge/LICENSE-Apache--2.0-D22128?style=for-the-badge"></a>
+  <a href="https://pypi.org/project/sova-oss/"><img alt="PyPI" src="https://img.shields.io/pypi/v/sova-oss?style=for-the-badge&label=PyPI&color=FFB000"></a>
+  <a href="https://github.com/TRUSCOR/SOVA-OSS/tree/main/LICENSE"><img alt="Apache License 2.0" src="https://img.shields.io/badge/LICENSE-Apache--2.0-D22128?style=for-the-badge"></a>
   <img alt="Local first" src="https://img.shields.io/badge/LOCAL--FIRST-YES-00B8D9?style=for-the-badge">
   <img alt="Telemetry" src="https://img.shields.io/badge/TELEMETRY-OFF%20BY%20DEFAULT-172B4D?style=for-the-badge">
   <img alt="Bring your own model" src="https://img.shields.io/badge/MODEL-BRING%20YOUR%20OWN-6554C0?style=for-the-badge">
@@ -36,14 +36,18 @@
 <br/>
 
 <p align="center">
-  <img src="./assets/sova-hero.png" width="100%" alt="SOVA maps an agent system, discovers a dormant trigger, seals the evidence, and produces a forensic replay" />
+  <img src="https://raw.githubusercontent.com/TRUSCOR/SOVA-OSS/main/assets/sova-hero.png" width="100%" alt="SOVA maps an agent system, discovers a dormant trigger, seals the evidence, and produces a forensic replay" />
 </p>
 
 ---
 
 > [!IMPORTANT]
-> **SOVA is pre-alpha.** The repository now implements experimental `0.1`
-> `.sova` capsule and `.sova-trace` contracts, deterministic and restricted
+> **SOVA OSS 0.1 is on PyPI** (`pip install sova-oss`). The `.sova` and
+> `.sova-trace` 0.1.0 formats are frozen and the core commands (`record`,
+> `verify`, `show`, `compare`, `audit`, `rerun`, `matrix`, `calibrate`) are stable
+> within 0.1.x; the rest is experimental. The exact lists are in
+> [api-stability](https://github.com/TRUSCOR/SOVA-OSS/blob/main/docs/governance/api-stability.md). Beyond the core, the
+> repository implements deterministic and restricted
 > local executors, observable deterministic oracles, capability mapping,
 > evidence-isolated orchestration, bounded checking, exact-gated local MCP,
 > fail-closed extensions/providers, evidence-first local community surfaces,
@@ -53,8 +57,8 @@
 > methodology compiler, security-tool normalization, an oracle laboratory,
 > production-worker control contracts, and blinded-launch evidence gates. The
 > worker and launch machinery is implemented locally; live Firecracker isolation,
-> blinded multi-provider field results, a public Registry deployment, independent
-> review, and publication remain open gates. The built-in loopback fixture now exercises a
+> blinded multi-provider field results, a public Registry deployment and independent
+> review remain open gates. The built-in loopback fixture now exercises a
 > real browser through the pinned Playwright MCP adapter. Operator-owned HTTPS
 > targets can use the short-lived well-known control-proof workflow plus exact
 > interactive authorization; target-specific procedures, accounts, privacy
@@ -84,15 +88,15 @@ Anyone can check it offline, and anyone with a model key can run the attack agai
 | How do I make one? | `sova record agentdojo run-log.json --out findings/` or `sova record inspect-log logs/ --out findings/` | A `.sova-trace` and `.sova` capsule from an AgentDojo run log, or a trace per sample and a capsule per log from Inspect AI eval logs |
 
 ```bash
-pip install "git+https://github.com/TRUSCOR/SOVA-OSS"                       # verify, show, compare, audit, record
-pip install "sova-oss[agentdojo] @ git+https://github.com/TRUSCOR/SOVA-OSS"  # adds rerun, matrix and calibrate
+pip install sova-oss                 # verify, show, compare, audit, record
+pip install "sova-oss[agentdojo]"    # adds rerun, matrix and calibrate
 ```
 
 Opening, verifying, showing, comparing and auditing never call a model. `rerun`,
 `matrix` and `calibrate` call one only with `--authorize`, read keys only from environment
 variables you name, and run only AgentDojo's simulated bank, inbox, travel and chat apps today.
-Guides: [audit and record](docs/guides/audit-and-record.md) ·
-[re-run and upgrade checks](docs/guides/rerun-and-matrix.md).
+Guides: [audit and record](https://github.com/TRUSCOR/SOVA-OSS/blob/main/docs/guides/audit-and-record.md) ·
+[re-run and upgrade checks](https://github.com/TRUSCOR/SOVA-OSS/blob/main/docs/guides/rerun-and-matrix.md).
 
 ## Implemented foundation, mapping, runtime, capsules, traces, and ecosystem boundaries
 
@@ -186,10 +190,10 @@ It provides:
   primary and reproduction traces, compares observable outcomes, and packages
   the evidence as a `.sova` capsule.
 
-Read [ADR-0007](./docs/decisions/0007-topic-02-engineering-foundation.md),
-[ADR-0008](./docs/decisions/0008-topic-03-domain-contracts.md), the
-[shared contracts](./docs/contracts/README.md), and the
-[experimental format specifications](./docs/specifications/README.md).
+Read [ADR-0007](https://github.com/TRUSCOR/SOVA-OSS/blob/main/docs/decisions/0007-topic-02-engineering-foundation.md),
+[ADR-0008](https://github.com/TRUSCOR/SOVA-OSS/blob/main/docs/decisions/0008-topic-03-domain-contracts.md), the
+[shared contracts](https://github.com/TRUSCOR/SOVA-OSS/blob/main/docs/contracts/README.md), and the
+[experimental format specifications](https://github.com/TRUSCOR/SOVA-OSS/blob/main/docs/specifications/README.md).
 
 ## Why SOVA
 
@@ -321,15 +325,15 @@ A `.sova-trace` now experimentally carries:
 
 SOVA builds on open telemetry and signing conventions rather than inventing
 private cryptography. Its claims are bounded by the published
-[threat model](./docs/specifications/threat-model.md).
+[threat model](https://github.com/TRUSCOR/SOVA-OSS/blob/main/docs/specifications/threat-model.md).
 
-The accepted [capsule and trace decision](./docs/decisions/0009-sova-behavior-capsule-and-trace-model.md)
+The accepted [capsule and trace decision](https://github.com/TRUSCOR/SOVA-OSS/blob/main/docs/decisions/0009-sova-behavior-capsule-and-trace-model.md)
 keeps scenarios, traces, findings, evaluations, reports, and registry entries
 separately typed inside or alongside the outer capsule.
 
 ### Versioning without lock-in
 
-The accepted [versioning and lossless-migration policy](./docs/decisions/0002-versioning-and-lossless-migration.md) is designed so a future SOVA release can continue reading every stable `.sova` version and migrate old artifacts forward without silent data loss.
+The accepted [versioning and lossless-migration policy](https://github.com/TRUSCOR/SOVA-OSS/blob/main/docs/decisions/0002-versioning-and-lossless-migration.md) is designed so a future SOVA release can continue reading every stable `.sova` version and migrate old artifacts forward without silent data loss.
 
 The promise is deliberately precise:
 
@@ -468,12 +472,12 @@ SOVA also has a checksum-pinned optional [CUA Driver](https://github.com/trycua/
 `0.12.6` boundary. Bounded read-only live conformance passed, while effectful
 desktop conformance remains unadmitted because UI Automation timed out and this
 runner exposed no independently verifiable foreground desktop. See the
-[external execution specification](./docs/specifications/external-execution-broker-0.1.md)
-and [live validation record](./docs/engineering/external-executor-validation-2026-08-09.md).
+[external execution specification](https://github.com/TRUSCOR/SOVA-OSS/blob/main/docs/specifications/external-execution-broker-0.1.md)
+and [live validation record](https://github.com/TRUSCOR/SOVA-OSS/blob/main/docs/engineering/external-executor-validation-2026-08-09.md).
 
 ## Implemented evidence, replay, rehearsal, and regression core
 
-The pre-alpha now includes:
+Release 0.1 also includes:
 
 - four-state offline verification (`verified`, `partial`, `invalid`, and
   `unsupported`);
@@ -902,7 +906,7 @@ image references, validates Compose's fully resolved image set, keeps operator
 secrets in an absolute directory outside the checkout, and repairs the named
 data volume plus stages the protected token into a separate read-only runtime
 volume for the non-root service before startup. Follow the exact
-[community deployment boundary](./deploy/community/README.md); this blueprint
+[community deployment boundary](https://github.com/TRUSCOR/SOVA-OSS/blob/main/deploy/community/README.md); this blueprint
 is not a production-hosting attestation.
 
 ### Is the registry “Metasploit for AI security”?
@@ -1030,10 +1034,10 @@ Research claims will require predeclared protocols, strong baselines, repeated t
 
 The Topic 01 evidence controls are now public:
 
-- the [claims register](./docs/research/claims-register.md) records what is verified, provisional, unverified, retired, or still a value hypothesis;
-- the [prior-art and interoperability matrix](./docs/research/prior-art-and-interoperability.md) records what SOVA will build, integrate, import, interoperate with, or deliberately skip;
-- the [predeclared comparison protocol](./docs/research/predeclared-comparison-protocol.md) freezes the target classes, strong baselines, budgets, objective oracles, repeated trials, false-positive rules, and evidence gates before results exist;
-- the [publication and IP review](./docs/governance/publication-and-ip-review.md) prevents vulnerability, invention, private-data, and unsupported-claim disclosure.
+- the [claims register](https://github.com/TRUSCOR/SOVA-OSS/blob/main/docs/research/claims-register.md) records what is verified, provisional, unverified, retired, or still a value hypothesis;
+- the [prior-art and interoperability matrix](https://github.com/TRUSCOR/SOVA-OSS/blob/main/docs/research/prior-art-and-interoperability.md) records what SOVA will build, integrate, import, interoperate with, or deliberately skip;
+- the [predeclared comparison protocol](https://github.com/TRUSCOR/SOVA-OSS/blob/main/docs/research/predeclared-comparison-protocol.md) freezes the target classes, strong baselines, budgets, objective oracles, repeated trials, false-positive rules, and evidence gates before results exist;
+- the [publication and IP review](https://github.com/TRUSCOR/SOVA-OSS/blob/main/docs/governance/publication-and-ip-review.md) prevents vulnerability, invention, private-data, and unsupported-claim disclosure.
 
 The current comparative result is **NOT RUN - UNPROVEN**. SOVA therefore makes no present claim that it catches defects other tools miss or attributes failures correctly. Those statements must be earned against the frozen protocol.
 
@@ -1043,30 +1047,30 @@ The current comparative result is **NOT RUN - UNPROVEN**. SOVA therefore makes n
 |---|---|
 | Vision and scope | Defined |
 | Public identity and README | Active |
-| Canonical artifact meanings | ADR-0001 superseded by the expanded [ADR-0009](./docs/decisions/0009-sova-behavior-capsule-and-trace-model.md) |
-| `.sova` capsule meaning and migration invariants | Accepted in [ADR-0009](./docs/decisions/0009-sova-behavior-capsule-and-trace-model.md) and [ADR-0002](./docs/decisions/0002-versioning-and-lossless-migration.md) |
-| Open/private and SOVA Engine boundary | Accepted in [ADR-0003](./docs/decisions/0003-open-source-and-proprietary-boundary.md) |
-| Self-assessment and TRUSCOR authority boundary | Accepted in [ADR-0004](./docs/decisions/0004-self-assessment-and-truscor-boundary.md) |
-| Topic 00 project constitution | Accepted in [ADR-0005](./docs/decisions/0005-topic-00-project-constitution.md) |
-| Topic 01 claims, prior art, experiment, and publication decision | Accepted in [ADR-0006](./docs/decisions/0006-topic-01-evidence-go-no-go.md) |
-| Topic 02 repository, language, quality, documentation, and public-safety foundation | Implemented in [ADR-0007](./docs/decisions/0007-topic-02-engineering-foundation.md) |
-| Topic 03 shared vocabulary, lifecycle, taxonomy, coverage, and version contracts | Implemented in [ADR-0008](./docs/decisions/0008-topic-03-domain-contracts.md) |
+| Canonical artifact meanings | ADR-0001 superseded by the expanded [ADR-0009](https://github.com/TRUSCOR/SOVA-OSS/blob/main/docs/decisions/0009-sova-behavior-capsule-and-trace-model.md) |
+| `.sova` capsule meaning and migration invariants | Accepted in [ADR-0009](https://github.com/TRUSCOR/SOVA-OSS/blob/main/docs/decisions/0009-sova-behavior-capsule-and-trace-model.md) and [ADR-0002](https://github.com/TRUSCOR/SOVA-OSS/blob/main/docs/decisions/0002-versioning-and-lossless-migration.md) |
+| Open/private and SOVA Engine boundary | Accepted in [ADR-0003](https://github.com/TRUSCOR/SOVA-OSS/blob/main/docs/decisions/0003-open-source-and-proprietary-boundary.md) |
+| Self-assessment and TRUSCOR authority boundary | Accepted in [ADR-0004](https://github.com/TRUSCOR/SOVA-OSS/blob/main/docs/decisions/0004-self-assessment-and-truscor-boundary.md) |
+| Topic 00 project constitution | Accepted in [ADR-0005](https://github.com/TRUSCOR/SOVA-OSS/blob/main/docs/decisions/0005-topic-00-project-constitution.md) |
+| Topic 01 claims, prior art, experiment, and publication decision | Accepted in [ADR-0006](https://github.com/TRUSCOR/SOVA-OSS/blob/main/docs/decisions/0006-topic-01-evidence-go-no-go.md) |
+| Topic 02 repository, language, quality, documentation, and public-safety foundation | Implemented in [ADR-0007](https://github.com/TRUSCOR/SOVA-OSS/blob/main/docs/decisions/0007-topic-02-engineering-foundation.md) |
+| Topic 03 shared vocabulary, lifecycle, taxonomy, coverage, and version contracts | Implemented in [ADR-0008](https://github.com/TRUSCOR/SOVA-OSS/blob/main/docs/decisions/0008-topic-03-domain-contracts.md) |
 | Comparative evidence gates 01-A and 01-B | **Not run - unproven; comparative claims prohibited** |
 | Local `sova` format CLI | Implemented experimentally: template, pack, validate, lint, inspect, hash, compatibility, migrate, verify, query, playback, compare, export, recover |
 | `sova.contracts` Python API | Implemented and experimental at `0.1.0` contract level |
 | Python package and locked contributor environment | Implemented as `sova-oss` / `uv.lock`; not published to PyPI |
 | Cross-platform CI and quality/security gates | Implemented |
 | Public repository boundary check | Active in CI and locally |
-| Repository licence | [Apache License 2.0](./LICENSE) |
-| Trademark and fork naming | [SOVA-OSS policy active](./TRADEMARKS.md) |
-| Dual-use and coordinated disclosure | [Policies active](./DUAL_USE_POLICY.md) |
+| Repository licence | [Apache License 2.0](https://github.com/TRUSCOR/SOVA-OSS/tree/main/LICENSE) |
+| Trademark and fork naming | [SOVA-OSS policy active](https://github.com/TRUSCOR/SOVA-OSS/blob/main/TRADEMARKS.md) |
+| Dual-use and coordinated disclosure | [Policies active](https://github.com/TRUSCOR/SOVA-OSS/blob/main/DUAL_USE_POLICY.md) |
 | `.sova` capsule and scenario schemas | Experimental `0.1.0` implemented with safe package tooling |
 | `.sova-trace` experimental contract | Experimental `0.1.0` implemented with streaming writer and offline verifier |
 | Scripted/local/isolated execution | Experimental executor contract and no-Atlas vertical slice implemented; local host execution is explicitly not a security sandbox. Docker Desktop and gVisor `runsc` backends require exact digest-pinned cached Linux images, no network/host mounts/daemon socket, non-root execution, bounded resources, post-run inspection, and cleanup. The OCI agent adapter additionally requires read-only root, no credentials, strict JSON protocol binding, exact human authorization, and signed conformance evidence. gVisor reduces direct host-kernel exposure but is not a separate VM; its live lane still requires a registered `runsc` runner |
 | Authorization and containment | Experimental ACE kernel, closed exact-batch human review, per-action signed one-use tokens, effect budgets, proof-of-control validation, and backend admission implemented |
 | Synthetic detonation and sensors | Event-sourced fake world, inert canaries, sink-only collector, deterministic oracles, nine ground-truth target families, and a claim-conditioned sensor ledger covering direct/provider/derived/unavailable modes, drops, clock domains, ordering, and blind spots; total observability is explicitly denied |
-| `sova map` | Air-gapped typed inventory, provenance-separated reach closures, map schema, and tool-definition drift implemented in [ADR-0013](./docs/decisions/0013-provenance-separated-capability-map.md) |
-| SOVA Runtime | Provider-neutral isolated roles, standard/custom profiles, evidence firewall, local minimized experience, opaque sessions, and verified executor fallback implemented in [ADR-0014](./docs/decisions/0014-evidence-firewalled-runtime.md) |
+| `sova map` | Air-gapped typed inventory, provenance-separated reach closures, map schema, and tool-definition drift implemented in [ADR-0013](https://github.com/TRUSCOR/SOVA-OSS/blob/main/docs/decisions/0013-provenance-separated-capability-map.md) |
+| SOVA Runtime | Provider-neutral isolated roles, standard/custom profiles, evidence firewall, local minimized experience, opaque sessions, and verified executor fallback implemented in [ADR-0014](https://github.com/TRUSCOR/SOVA-OSS/blob/main/docs/decisions/0014-evidence-firewalled-runtime.md) |
 | External security-tool adapters | Twelve promoted version-pinned normalizers (ZAP, Nuclei, Schemathesis, PyRIT, garak, promptfoo, Trivy, Syft, Grype, OSV-Scanner, Gitleaks, Semgrep), constrained ffuf/httpx/testssl/sqlmap/mitmproxy/zgrab2 and generic MCP/HTTP descriptors, and an enforced Nmap legal hold. Runtime execution requires operator-supplied SHA-256-bound bytes, exact version evidence, target authority, containment, config/rules pins, and disclosure approval for external transfer. Owned fixtures validate routing, normalization, trace binding, failure separation, reproduction comparison, and cleanup; live compatibility with every upstream binary and production isolation remain deployment evidence, not repository claims |
 | Universal target intake and methodology | Eight-class target profiles, workflow/surface graphs, explicit discovery gaps, bounded collectors, deterministic methodology compilation, 74 native playbooks, and non-authorizing execution plans are implemented. Intake is evidence about supplied and observed surfaces, not proof that every workflow or attack surface was discovered |
 | Oracle laboratory and coverage | Proposal, calibration, promotion, differential/metamorphic, independent-reproduction, and eight-dimensional measured-coverage contracts are implemented. The deterministic local study validates the machinery only; target-specific oracle reliability and exhaustive vulnerability discovery remain unproven |
@@ -1074,18 +1078,18 @@ The current comparative result is **NOT RUN - UNPROVEN**. SOVA therefore makes n
 | Blinded validation and launch gates | An eight-target-class/four-lane evaluation protocol, provenance-bound candidate benchmark adapters, exact run accounting, Registry readiness policy, local backup/recovery utility, five-review release ledger, deterministic evidence assembler, and signed exact-candidate launch dossier are implemented. The dossier verifies role-scoped DSSE receipts against an out-of-band pinned trust policy, enforces distinct role keys and structural independent-review separation, recomputes every nested verdict, exposes machine-readable evaluation/Registry/review/external-gate summaries and hold reasons, binds the actual artifact manifest and claims-register bytes, and never publishes automatically. Live providers, blinded licensed targets, matched baselines, dedicated-worker evidence, public Registry operations, independent/legal/security reviews, and publication remain open |
 | `sova check` | Bundled synthetic and authorized live-browser checks with finite candidate sets, exact human approval, signed traces, controlled reproduction, and honest confirmed/not-observed/inconclusive states |
 | `sova detonate` | Real Playwright/Chrome website execution plus bounded trusted local-process execution on two credential-stripped copies; both require exact human approval and produce signed primary/reproduction traces plus evidence capsules. Browser detonation supports explicit opt-in headed WebM recording packaged as typed visual replay and rendered directly from the capsule. A four-class static/SPA/authenticated/popup owned-site matrix passed real Chrome. The contained action lab adds real disposable file, loopback SMTP email, loopback message, and settings effects with independent ground-truth receipts and a registry-ready module; this proves the controlled vertical, not arbitrary third-party agents. Windows/macOS Appium and Linux AT-SPI application-bound adapters exist at the executor API, but general native-desktop detonation still requires platform drivers, owned fixtures, and CLI integration |
-| `sova hunt` | Bounded operator-authored or provider-assisted candidate search executes in real Playwright/Chrome, records snapshot/console/network observations, detects near misses, reproduces the winning recipe under fresh approval, and emits signed traces plus an offline-verifiable discovery capsule. Deterministic tests verify isolated roles; one founder-authorized OpenRouter free-model run against loopback AI Goat Challenge 1 passed with controlled reproduction and digest-bound exact-moment video evidence on 2026-08-20. The expanded nine-mission semantic AI Goat lane—including Knowledge Base workflows—is implemented and statically preflighted, but the final OpenRouter availability probe returned `SOVA-PROVIDER-RATE-LIMIT`, so the all-nine campaign was not launched and is not claimed as passed. This is not general target coverage or provider-quality evidence; see the [bounded acceptance record](./docs/engineering/aigoat-loopback-acceptance-2026-08-20.md) |
+| `sova hunt` | Bounded operator-authored or provider-assisted candidate search executes in real Playwright/Chrome, records snapshot/console/network observations, detects near misses, reproduces the winning recipe under fresh approval, and emits signed traces plus an offline-verifiable discovery capsule. Deterministic tests verify isolated roles; one founder-authorized OpenRouter free-model run against loopback AI Goat Challenge 1 passed with controlled reproduction and digest-bound exact-moment video evidence on 2026-08-20. The expanded nine-mission semantic AI Goat lane—including Knowledge Base workflows—is implemented and statically preflighted, but the final OpenRouter availability probe returned `SOVA-PROVIDER-RATE-LIMIT`, so the all-nine campaign was not launched and is not claimed as passed. This is not general target coverage or provider-quality evidence; see the [bounded acceptance record](https://github.com/TRUSCOR/SOVA-OSS/blob/main/docs/engineering/aigoat-loopback-acceptance-2026-08-20.md) |
 | Persistent browser sessions | Exact-target-bound opaque profiles, cross-process exclusive leases, bounded stale recovery, manual headful authentication/CAPTCHA handoff, campaign reuse, and installed-Chrome two-process fixture persistence are implemented; profile state remains sensitive local executor material, is not SOVA-encrypted, and is never embedded in capsules or traces |
 | MELRA/CUA adapters | MELRA `0.3.0-alpha.10` browser/terminal/computer probe and same-process session reuse passed live; checksum-pinned CUA `0.12.6` bounded reads passed, while live desktop mutation remains visibly blocked on this runner |
 | Sleeper demonstration | Implemented with named narrow baselines, two-dimensional search, signed discovery/reproduction traces, `.sova`, independent offline verification, and reset evidence |
 | `sova forensics` | Evidence-linked reconstruction, reviewed-trial attribution, repeated authorized real-browser message-removal interventions, and a strict blinded task/prediction/score protocol with commitment and optional reviewer-key verification; the bundled stochastic study passes its declared software-validation gates, while real-system causal accuracy and reviewer independence remain externally unproven |
 | `sova case build` | Exact trace/capsule binding plus one offline forensic, replay, evidence, monitoring, and blocked contribution-preview workspace; no re-execution, network, upload, or automatic disclosure |
-| `sova evidence`, `adjudicate`, and `disclose` | Watermarked evidence, SARIF projection/import, bounded scanner labels, human-gated local disclosure preparation, and four report views implemented in [ADR-0020](./docs/decisions/0020-bounded-evidence-adjudication-disclosure.md) |
-| `sova compose` | Typed metadata-only graph, four bounded search strategies, fresh-evidence minimization, element-removal attribution, portable capsule fragment, and deterministic composition-only fixture implemented in [ADR-0021](./docs/decisions/0021-bounded-composition-only-search.md); comparative search superiority remains unproven |
-| `sova rehearse` | Credential-stripped substitute workspace, distinct user/attacker evidence, signed traces, review, and selective export implemented in [ADR-0022](./docs/decisions/0022-substitute-only-rehearsal-and-selective-promotion.md); the built-in backend is not a security sandbox |
+| `sova evidence`, `adjudicate`, and `disclose` | Watermarked evidence, SARIF projection/import, bounded scanner labels, human-gated local disclosure preparation, and four report views implemented in [ADR-0020](https://github.com/TRUSCOR/SOVA-OSS/blob/main/docs/decisions/0020-bounded-evidence-adjudication-disclosure.md) |
+| `sova compose` | Typed metadata-only graph, four bounded search strategies, fresh-evidence minimization, element-removal attribution, portable capsule fragment, and deterministic composition-only fixture implemented in [ADR-0021](https://github.com/TRUSCOR/SOVA-OSS/blob/main/docs/decisions/0021-bounded-composition-only-search.md); comparative search superiority remains unproven |
+| `sova rehearse` | Credential-stripped substitute workspace, distinct user/attacker evidence, signed traces, review, and selective export implemented in [ADR-0022](https://github.com/TRUSCOR/SOVA-OSS/blob/main/docs/decisions/0022-substitute-only-rehearsal-and-selective-promotion.md); the built-in backend is not a security sandbox |
 | `sova trace`, `diff`, `sentinel`, `monitor`, `ci`, and `self-check` | Deterministic local recorder, three-axis drift, one-shot sentinel/CI, and a durable scheduler with workspace-bound jobs, OS overlap exclusion, restart recovery, bounded retention, signed traces, and an HTTPS HMAC/idempotency/acknowledgement alert adapter. Service-manager templates ship for Linux, macOS, and Windows; remote collection, remediation, HA, and uptime remain deployment claims |
 | Registry, `sync`, adapters, `contribute`, and self-hosted community service | Offline content-addressed registry plus a loopback service with token-gated bounded staging, signer-pinned asynchronous verification, atomic promotion, signed live index, SSE events, standard-profile leaderboard, and an exact endpoint/key-digest health contract. The documented container/Caddy launch path requires immutable-image preflight, exact equality between resolved Compose images and the two validated digest references, validation and protected staging of external operator inputs, and persistent-volume ownership repair before the non-root, read-only-root, capability-dropped service starts. This is a deployment blueprint, not a hosted or production-attested community; operator identity policy, moderation, backups/restore drills, abuse controls, monitoring, incident response, independent review, and uptime evidence remain external gates |
-| Local MCP | MCP `2025-11-25` stdio, safe tools, three exact-gated tools, out-of-band human approval, manifest pin, and self-check implemented in [ADR-0025](./docs/decisions/0025-local-mcp-out-of-band-authorization.md) |
+| Local MCP | MCP `2025-11-25` stdio, safe tools, three exact-gated tools, out-of-band human approval, manifest pin, and self-check implemented in [ADR-0025](https://github.com/TRUSCOR/SOVA-OSS/blob/main/docs/decisions/0025-local-mcp-out-of-band-authorization.md) |
 | Extension SDK, providers, targets, interoperability | Experimental fail-closed contracts, import-free discovery, machine-local digest-pinned preparation, exact human-approved subprocess execution, a preregistered paired provider/model experiment matrix, Python and Node offline verifiers, a no-network conformance kit, and a strict OCI agent protocol with signed `describe`/`self-test`/`respond` conformance. Ordinary extension host execution is not a sandbox; external implementation ownership, provider transferability, and adoption remain unproven |
 | Probe, Arena, leaderboard, CTF, replay media | Deterministic standard-profile Arena, provider/OCI-capable message Arena, real-time sensor-instrumented multi-agent chamber, authorized provider-backed website Arena, adaptive multi-page semantic website exploration, and browser-swarm lanes are implemented with signed observable evidence. Installed-Chrome validation on a controlled loopback fixture covers semantic navigation, history, forms, drag, modal handling, bounded tabs, clean reproduction, video, and exact-moment replay. The prepared all-nine AI Goat provider campaign remains unrun because the final availability probe was rate-limited. Protocol-conforming third-party OCI agents are conditionally admitted only through an attested live gVisor `runsc` host and have no direct browser authority; mandatory tests pass, but this host has no registered live `runsc` lane. “Fully sensed” is bounded to declared healthy sensor families; total host observability, provider-quality comparison, and public comparative results remain unproven |
 | Research/publication programme | Private source, opportunity, invention, and publication-readiness ledgers maintained; public novelty and submission remain human/external gates |
@@ -1126,33 +1130,33 @@ The separation is:
 
 > **SOVA OSS provides the instrument and first-party evidence. TRUSCOR combines private intelligence with separately governed operation and accountability.**
 
-Read [the complete open/private decision](./docs/decisions/0003-open-source-and-proprietary-boundary.md), [the self-assessment decision](./docs/decisions/0004-self-assessment-and-truscor-boundary.md), [the Topic 00 constitution](./docs/decisions/0005-topic-00-project-constitution.md), and [the public repository policy](./docs/governance/public-repository-boundary.md).
+Read [the complete open/private decision](https://github.com/TRUSCOR/SOVA-OSS/blob/main/docs/decisions/0003-open-source-and-proprietary-boundary.md), [the self-assessment decision](https://github.com/TRUSCOR/SOVA-OSS/blob/main/docs/decisions/0004-self-assessment-and-truscor-boundary.md), [the Topic 00 constitution](https://github.com/TRUSCOR/SOVA-OSS/blob/main/docs/decisions/0005-topic-00-project-constitution.md), and [the public repository policy](https://github.com/TRUSCOR/SOVA-OSS/blob/main/docs/governance/public-repository-boundary.md).
 
 ## Licence, attribution, and citation
 
 SOVA OSS was created by Gautam R. Patil, who started this repository on 28 July 2026, and is developed by TRUSCOR Private Limited. The original v1 prototype is preserved at [Gautam-R-Patil/SOVA-OSS](https://github.com/Gautam-R-Patil/SOVA-OSS); papers built on SOVA are released at [TRUSCOR/research](https://github.com/TRUSCOR/research).
 
-SOVA OSS is licensed under the [Apache License 2.0](./LICENSE). Developers, researchers, individuals, enterprises, and commercial users may use, modify, distribute, and build on the public repository subject to that licence.
+SOVA OSS is licensed under the [Apache License 2.0](https://github.com/TRUSCOR/SOVA-OSS/tree/main/LICENSE). Developers, researchers, individuals, enterprises, and commercial users may use, modify, distribute, and build on the public repository subject to that licence.
 
-When distributing SOVA OSS or a derivative work, preserve the licence, relevant copyright and attribution notices, the contents of [NOTICE](./NOTICE), and clear notices for modified files as required by Apache-2.0. The licence also includes an express patent grant from contributors and does not grant rights to use project trademarks.
+When distributing SOVA OSS or a derivative work, preserve the licence, relevant copyright and attribution notices, the contents of [NOTICE](https://github.com/TRUSCOR/SOVA-OSS/tree/main/NOTICE), and clear notices for modified files as required by Apache-2.0. The licence also includes an express patent grant from contributors and does not grant rights to use project trademarks.
 
 Apache-2.0 does not require a private internal user or a service that never distributes the software to advertise TRUSCOR publicly. That restriction is deliberate: adding a field-of-use or mandatory-promotion condition would make the project less interoperable and could prevent it from meeting accepted open-source criteria. Distributed copies and forks do carry enforceable notice obligations.
 
-For papers, reports, theses, benchmarks, and datasets, use the repository's [CITATION.cff](./CITATION.cff). GitHub exposes it through **Cite this repository**. Citation is a research-norm request in addition to the legal notice obligations for software distribution.
+For papers, reports, theses, benchmarks, and datasets, use the repository's [CITATION.cff](https://github.com/TRUSCOR/SOVA-OSS/blob/main/CITATION.cff). GitHub exposes it through **Cite this repository**. Citation is a research-norm request in addition to the legal notice obligations for software distribution.
 
-**SOVA-OSS™** is the canonical project mark. The software licence does not license the name or owl logo. Materially modified forks must use a distinct primary name and may describe themselves truthfully as “based on SOVA-OSS” or “a fork of SOVA-OSS.” See the complete [trademark and fork-naming policy](./TRADEMARKS.md).
+**SOVA-OSS™** is the canonical project mark. The software licence does not license the name or owl logo. Materially modified forks must use a distinct primary name and may describe themselves truthfully as “based on SOVA-OSS” or “a fork of SOVA-OSS.” See the complete [trademark and fork-naming policy](https://github.com/TRUSCOR/SOVA-OSS/blob/main/TRADEMARKS.md).
 
 ## Contributing
 
-The project is pre-alpha, but its contribution and safety rules are active now:
+Its contribution and safety rules are active now:
 
-- read [CONTRIBUTING.md](./CONTRIBUTING.md) before proposing a change;
-- set up the locked environment using the [development guide](./docs/engineering/development.md);
-- follow the [testing strategy](./docs/engineering/testing.md) and [repository controls](./docs/governance/repository-controls.md);
+- read [CONTRIBUTING.md](https://github.com/TRUSCOR/SOVA-OSS/blob/main/CONTRIBUTING.md) before proposing a change;
+- set up the locked environment using the [development guide](https://github.com/TRUSCOR/SOVA-OSS/blob/main/docs/engineering/development.md);
+- follow the [testing strategy](https://github.com/TRUSCOR/SOVA-OSS/blob/main/docs/engineering/testing.md) and [repository controls](https://github.com/TRUSCOR/SOVA-OSS/blob/main/docs/governance/repository-controls.md);
 - sign every commit using the [Developer Certificate of Origin](https://developercertificate.org/) (`git commit -s`);
-- follow the [dual-use policy](./DUAL_USE_POLICY.md) for scenarios, fixtures, search methods, and registry content;
-- report vulnerabilities privately under [SECURITY.md](./SECURITY.md);
-- respect the [public repository boundary](./docs/governance/public-repository-boundary.md) and [trademark policy](./TRADEMARKS.md).
+- follow the [dual-use policy](https://github.com/TRUSCOR/SOVA-OSS/blob/main/DUAL_USE_POLICY.md) for scenarios, fixtures, search methods, and registry content;
+- report vulnerabilities privately under [SECURITY.md](https://github.com/TRUSCOR/SOVA-OSS/blob/main/SECURITY.md);
+- respect the [public repository boundary](https://github.com/TRUSCOR/SOVA-OSS/blob/main/docs/governance/public-repository-boundary.md) and [trademark policy](https://github.com/TRUSCOR/SOVA-OSS/blob/main/TRADEMARKS.md).
 
 Contribution areas will include:
 
@@ -1199,12 +1203,12 @@ Never open public issues containing live credentials, private traces, unpatched 
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="./assets/truscor-mark-dark.svg">
     <source media="(prefers-color-scheme: light)" srcset="./assets/truscor-mark-light.svg">
-    <img src="./assets/truscor-mark-light.svg" width="58" alt="TRUSCOR mark">
+    <img src="https://raw.githubusercontent.com/TRUSCOR/SOVA-OSS/main/assets/truscor-mark-light.svg" width="58" alt="TRUSCOR mark">
   </picture>
 </p>
 
 <p align="center">
-  <img src="./assets/truscor-wordmark.png" width="430" alt="TRUSCOR wordmark">
+  <img src="https://raw.githubusercontent.com/TRUSCOR/SOVA-OSS/main/assets/truscor-wordmark.png" width="430" alt="TRUSCOR wordmark">
 </p>
 
 <p align="center">

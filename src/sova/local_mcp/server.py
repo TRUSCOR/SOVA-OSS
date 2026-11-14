@@ -6,6 +6,7 @@ from __future__ import annotations
 import sys
 from typing import TYPE_CHECKING, Any, BinaryIO
 
+from sova import __version__
 from sova.formats import canonical_json_bytes, strict_json_loads
 from sova.formats.errors import FormatError
 from sova.local_mcp.model import MCP_PROTOCOL_VERSION
@@ -53,7 +54,7 @@ class LocalSOVAMCPServer:
                 "result": {
                     "protocolVersion": MCP_PROTOCOL_VERSION,
                     "capabilities": {"tools": {"listChanged": False}},
-                    "serverInfo": {"name": "sova-oss-local", "version": "0.1.0a0"},
+                    "serverInfo": {"name": "sova-oss-local", "version": __version__},
                     "instructions": (
                         "SOVA is local-first. No MCP tool can approve a gated invocation; "
                         "use the separate interactive control channel."

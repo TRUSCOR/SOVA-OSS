@@ -9,8 +9,10 @@ from typing import TYPE_CHECKING
 
 import pytest
 
+from sova import __version__
 from sova.cli import main
-from sova.front_door import CORE_COMMANDS, front_door_description
+from sova.command_audit import command_handlers
+from sova.front_door import CORE_COMMANDS, STABLE_CLI_LEAVES, front_door_description
 from sova.interoperability.agentdojo import record_agentdojo_log
 
 if TYPE_CHECKING:
@@ -49,12 +51,30 @@ def test_help_leads_with_the_core_commands_in_order(capsys: pytest.CaptureFixtur
     assert exit_info.value.code == 0
     output = capsys.readouterr().out
     assert output.startswith("usage: sova [-h] [--version] COMMAND ...")
-    assert "pre-alpha" in output
+    assert f"SOVA OSS {__version__}:" in output
     core = output[output.index("core commands:") :].splitlines()[1 : 1 + len(CORE_ORDER)]
     assert [line.split()[0] for line in core] == CORE_ORDER
     assert output.index("core commands:") < output.index("positional arguments:")
     for word in ("first", "only", "best", "revolutionary"):
         assert word not in front_door_description().lower().split()
+
+
+def test_stable_cli_leaves_stay_registered() -> None:
+    """A leaf declared stable for 0.1.x cannot disappear or be renamed silently."""
+    handlers = command_handlers()
+    assert STABLE_CLI_LEAVES == (
+        "audit",
+        "calibrate",
+        "compare",
+        "matrix",
+        "record agentdojo",
+        "record inspect-log",
+        "rerun",
+        "show",
+        "verify",
+    )
+    assert set(STABLE_CLI_LEAVES) <= set(handlers)
+    assert {leaf.split()[0] for leaf in STABLE_CLI_LEAVES} == set(CORE_ORDER)
 
 
 def test_show_prints_capsules_like_inspect_and_traces_like_playback(

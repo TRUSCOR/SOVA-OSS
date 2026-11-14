@@ -2,7 +2,25 @@
 
 # Installation and initialization
 
-SOVA OSS is pre-alpha. The canonical source-checkout path is:
+SOVA OSS is published on PyPI as `sova-oss` and needs Python 3.11 to 3.14 on
+Windows, macOS or Linux:
+
+```console
+pip install sova-oss                 # record, verify, show, compare, audit
+pip install "sova-oss[agentdojo]"    # adds rerun, matrix and calibrate
+sova --version
+```
+
+To install the command on its own, isolated from your projects, use
+`uv tool install sova-oss` or `pipx install sova-oss`. What is frozen and what is
+experimental in this release is listed in [api-stability](../governance/api-stability.md).
+
+No SOVA account, hosted service, provider key, model, or network connection is
+required for the deterministic core. The package includes the Ed25519 signing
+dependency needed by the signed demo and trace workflows; the only extra is
+`agentdojo`, which re-running recorded findings needs.
+
+To work on SOVA itself, use a source checkout:
 
 ```console
 git clone https://github.com/TRUSCOR/SOVA-OSS.git
@@ -11,11 +29,8 @@ uv sync --locked
 uv run sova --version
 ```
 
-No SOVA account, hosted service, provider key, model, or network connection is
-required for the deterministic core. The canonical package includes the
-Ed25519 signing dependency needed by the signed demo and trace workflows; there
-is no second “full” package extra to discover. A package-index command is intentionally
-not documented until an official package is published and verified.
+The `uv run` prefix in the commands below is for a source checkout; with the
+package installed, run `sova` directly.
 
 Initialize a local data directory:
 

@@ -58,7 +58,7 @@ def test_empty_invocation_prints_help(capsys: pytest.CaptureFixture[str]) -> Non
     captured = capsys.readouterr()
     assert captured.err == ""
     assert captured.out.startswith("usage: sova")
-    assert "pre-alpha" in captured.out
+    assert f"SOVA OSS {__version__}:" in captured.out
 
 
 def test_version_is_machine_stable(capsys: pytest.CaptureFixture[str]) -> None:
@@ -92,7 +92,7 @@ def test_source_checkout_has_version_fallback(monkeypatch: pytest.MonkeyPatch) -
     with monkeypatch.context() as context:
         context.setattr(importlib.metadata, "version", missing_distribution)
         reloaded = importlib.reload(sova)
-        assert reloaded.__version__ == "0.1.0a0"
+        assert reloaded.__version__ == "0.1.0"
 
     importlib.reload(sova)
 

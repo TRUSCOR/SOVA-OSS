@@ -9,6 +9,26 @@ have independent version ledgers.
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-11-15
+
+First release on PyPI: `pip install sova-oss`, with `pip install "sova-oss[agentdojo]"` for
+re-running findings. The `.sova` and `.sova-trace` 0.1.0 formats and the `sova.calibration`
+0.1.0 report are frozen, and the core commands (`record agentdojo`, `record inspect-log`,
+`verify`, `show`, `compare`, `audit`, `rerun`, `matrix`, `calibrate`) are stable within 0.1.x;
+everything else is experimental, as listed in `docs/governance/api-stability.md`. This release
+accompanies the TRUSCOR research preprint on portable, evidence-bounded reproduction of AI-agent
+security findings, whose results ship as `.sova` files this package verifies.
+
+### Release
+
+- Added `.github/workflows/publish.yml`, which publishes a tagged release through PyPI Trusted
+  Publishing with attestations, only when dispatched by hand, after the tag/version check, the
+  test suite, and a clean-environment install of the built wheel.
+- Added `docs/governance/api-stability.md` and a test that fails if a stable command is removed or
+  renamed.
+- The local MCP server and the MCP client now report the installed package version instead of a
+  fixed string.
+
 ### Security
 
 - Hardened community ingestion against secrets hidden in compressed, nested,
@@ -382,11 +402,11 @@ have independent version ledgers.
 - Phantom payload/evidence sizes are bounded, and ephemeral token zeroization
   runs on success, validation failure, or harness failure.
 
-## [0.1.0a0] - Unreleased
+## [0.1.0a0] - never published
 
-Pre-alpha engineering-foundation version. It has not been published to PyPI
-and does not implement the security capability commands described in the
-project vision.
+Pre-alpha engineering-foundation version, superseded by 0.1.0 before any
+publication.
 
-[Unreleased]: https://github.com/TRUSCOR/SOVA-OSS/compare/v0.1.0a0...HEAD
-[0.1.0a0]: https://github.com/TRUSCOR/SOVA-OSS/releases/tag/v0.1.0a0
+[Unreleased]: https://github.com/TRUSCOR/SOVA-OSS/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/TRUSCOR/SOVA-OSS/releases/tag/v0.1.0
+[0.1.0a0]: https://github.com/TRUSCOR/SOVA-OSS/commits/main

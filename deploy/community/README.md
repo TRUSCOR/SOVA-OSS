@@ -23,8 +23,8 @@ tag:
 ```console
 python deploy/community/preflight.py build \
   --base-image python:3.11-slim@sha256:REPLACE_WITH_64_LOWERCASE_HEX \
-  --wheel dist/sova_oss-0.1.0a0-py3-none-any.whl \
-  --local-tag ghcr.io/OWNER/sova-oss:0.1.0a0
+  --wheel dist/sova_oss-0.1.0-py3-none-any.whl \
+  --local-tag ghcr.io/OWNER/sova-oss:0.1.0
 ```
 
 `build` rejects a tag-only base, sends only `dist/*.whl` through the

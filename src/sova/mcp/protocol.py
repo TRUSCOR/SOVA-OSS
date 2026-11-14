@@ -13,6 +13,7 @@ from contextlib import suppress
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Protocol, Self
 
+from sova import __version__
 from sova.formats import canonical_json_bytes, strict_json_loads
 from sova.formats.errors import FormatError
 
@@ -295,7 +296,7 @@ class StdioMCPClient:
             {
                 "protocolVersion": _PROTOCOL_VERSION,
                 "capabilities": {},
-                "clientInfo": {"name": "sova-oss", "version": "0.1.0a0"},
+                "clientInfo": {"name": "sova-oss", "version": __version__},
             },
             timeout_seconds=self.spec.startup_timeout_seconds,
         )
