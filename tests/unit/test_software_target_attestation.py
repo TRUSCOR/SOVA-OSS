@@ -78,10 +78,25 @@ def test_executable_digest_rejects_empty_and_oversized_files(
         software_target._file_digest(fixture)
 
 
-@pytest.mark.skipif(os.name != "nt", reason="window discovery is Windows-only")
+class _PlatformOs:
+    """Present one platform name to a single module; the os module stays untouched."""
+
+    def __init__(self, name: str) -> None:
+        self.name = name
+
+    def __getattr__(self, attribute: str) -> object:
+        return getattr(os, attribute)
+
+
 def test_window_discovery_validates_selector_ambiguity_timeout_and_success(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    monkeypatch.setattr(software_target, "os", _PlatformOs("posix"))
+    with pytest.raises(FormatError, match="available only on Windows"):
+        wait_for_owned_window(1, timeout_seconds=1.0)
+    # Window enumeration itself is faked below, so the selector, ambiguity and
+    # deadline logic runs on every platform.
+    monkeypatch.setattr(software_target, "os", _PlatformOs("nt"))
     for values in (
         {"pid": 0},
         {"pid": 1, "timeout_seconds": True},
