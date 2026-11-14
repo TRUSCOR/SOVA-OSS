@@ -594,6 +594,25 @@ def _http_raw(  # noqa: PLR0913 - raw HTTP fields are intentionally independent
     return result
 
 
+def _assert_rejected_body_is_not_a_request(host: str, port: int) -> None:
+    # A rejected request's unread body must never be parsed as a second request.
+    smuggled = b"GET /v1/health HTTP/1.1\r\nHost: localhost\r\n\r\n"
+    keep_alive = socket.create_connection((host, port), timeout=10)
+    keep_alive.sendall(
+        b"POST /v1/submissions HTTP/1.1\r\nHost: localhost\r\nContent-Length: "
+        + str(len(smuggled)).encode()
+        + b"\r\n\r\n"
+        + smuggled
+    )
+    received = b""
+    while chunk := keep_alive.recv(4096):
+        received += chunk
+    keep_alive.close()
+    assert b" 401 " in received
+    assert b"Connection: close" in received
+    assert received.count(b"HTTP/1.1 ") == 1
+
+
 def test_http_route_rate_and_lifecycle_edges(tmp_path: Path) -> None:
     key_id = "sha256:" + "0" * 64
     config = CommunityServiceConfig(
@@ -654,6 +673,7 @@ def test_http_route_rate_and_lifecycle_edges(tmp_path: Path) -> None:
         )
         assert b" 411 " in raw.recv(4096)
         raw.close()
+        _assert_rejected_body_is_not_a_request(host, port)
     finally:
         service.close()
         thread.join(timeout=10)

@@ -1184,18 +1184,28 @@ class CommunityHTTPService:
             def log_message(self, _format: str, *_args: object) -> None:
                 return
 
-            def _send(self, status: HTTPStatus, document: Mapping[str, Any]) -> None:
+            def _send(
+                self, status: HTTPStatus, document: Mapping[str, Any], *, close: bool = False
+            ) -> None:
                 body = canonical_json_bytes(dict(document)) + b"\n"
                 self.send_response(status.value)
                 self.send_header("Content-Type", "application/json")
                 self.send_header("Content-Length", str(len(body)))
                 self.send_header("Cache-Control", "no-store")
                 self.send_header("X-Content-Type-Options", "nosniff")
+                if close:
+                    self.send_header("Connection", "close")
+                    self.close_connection = True
                 self.end_headers()
                 self.wfile.write(body)
 
             def _error(self, status: HTTPStatus, code: str, message: str) -> None:
                 self._send(status, {"error": {"code": code, "message": message}})
+
+            def _reject_unread(self, status: HTTPStatus, code: str, message: str) -> None:
+                # The request body was not read, so the connection must not carry another
+                # request: the unread bytes would otherwise be parsed as one.
+                self._send(status, {"error": {"code": code, "message": message}}, close=True)
 
             def _authorized(self) -> bool:
                 expected = "Bearer " + service.config.token
@@ -1207,29 +1217,31 @@ class CommunityHTTPService:
 
             def do_POST(self) -> None:
                 if not self._rate_allowed():
-                    self._error(
+                    self._reject_unread(
                         HTTPStatus.TOO_MANY_REQUESTS, "SOVA-SERVICE-RATE", "rate limit exceeded"
                     )
                     return
                 if not self._authorized():
-                    self._error(
+                    self._reject_unread(
                         HTTPStatus.UNAUTHORIZED,
                         "SOVA-SERVICE-AUTH",
                         "valid operator token required",
                     )
                     return
                 if urlsplit(self.path).path != "/v1/submissions":
-                    self._error(HTTPStatus.NOT_FOUND, "SOVA-SERVICE-NOT-FOUND", "route not found")
+                    self._reject_unread(
+                        HTTPStatus.NOT_FOUND, "SOVA-SERVICE-NOT-FOUND", "route not found"
+                    )
                     return
                 raw_length = self.headers.get("Content-Length")
                 if raw_length is None or not raw_length.isdecimal():
-                    self._error(
+                    self._reject_unread(
                         HTTPStatus.LENGTH_REQUIRED, "SOVA-SERVICE-LENGTH", "content length required"
                     )
                     return
                 length = int(raw_length)
                 if length < 1 or length > service.config.limits.max_body_bytes:
-                    self._error(
+                    self._reject_unread(
                         HTTPStatus.REQUEST_ENTITY_TOO_LARGE,
                         "SOVA-SERVICE-LIMIT",
                         "request body exceeds limit",
