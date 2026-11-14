@@ -1122,9 +1122,11 @@ def test_symlink_destination_is_rejected_before_environment_creation(tmp_path: P
     except OSError as error:
         pytest.skip(f"directory symlink creation is unavailable: {error}")
     environments = _EnvironmentFactory()
-    with pytest.raises(FormatError, match="empty real directory"):
+    # The traversal guard rejects the link itself before the emptiness check runs.
+    with pytest.raises(FormatError, match="cannot traverse a link or junction"):
         _run(link, environments=environments)
     assert environments.environments == []
+    assert list(real.iterdir()) == []
 
 
 def test_model_prompts_and_exported_artifacts_withhold_environment_secrets(

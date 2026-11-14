@@ -76,7 +76,7 @@ def _subprocess_runner(
     environment: Mapping[str, str],
     timeout_seconds: int,
 ) -> CommandResult:
-    creation_flags = subprocess.CREATE_NEW_PROCESS_GROUP if os.name == "nt" else 0
+    creation_flags = subprocess.CREATE_NEW_PROCESS_GROUP if os.name == "nt" else 0  # type: ignore[attr-defined,unused-ignore]
     try:
         process = subprocess.Popen(  # noqa: S603 - shell is false and argv is fixed/typed
             list(argv),
@@ -114,7 +114,7 @@ def _terminate_process_tree(process: subprocess.Popen[bytes]) -> None:
         return
     if os.name == "nt":
         try:
-            process.send_signal(signal.CTRL_BREAK_EVENT)
+            process.send_signal(signal.CTRL_BREAK_EVENT)  # type: ignore[attr-defined,unused-ignore]
             process.wait(timeout=3)
         except (OSError, subprocess.TimeoutExpired):
             pass
@@ -138,7 +138,7 @@ def _terminate_process_tree(process: subprocess.Popen[bytes]) -> None:
             process.kill()
         return
     try:
-        os.killpg(process.pid, signal.SIGKILL)  # type: ignore[attr-defined]
+        os.killpg(process.pid, signal.SIGKILL)  # type: ignore[attr-defined,unused-ignore]
     except (OSError, ProcessLookupError):
         process.kill()
 

@@ -3,11 +3,14 @@
 
 from __future__ import annotations
 
+import ctypes
 import io
+import os
 import struct
 import time
 import zipfile
 from dataclasses import dataclass
+from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any, cast
 
 import pytest
@@ -555,3 +558,125 @@ def test_capture_attested_window_requires_exact_window() -> None:
     attestation.window_id = None  # type: ignore[assignment]
     with pytest.raises(FormatError, match="requires an attested"):
         window_recording.capture_attested_window_bmp(cast("SoftwareTargetAttestation", attestation))
+
+
+class _PlatformOs:
+    """Present one platform name to a single module; the os module stays untouched."""
+
+    def __init__(self, name: str) -> None:
+        self.name = name
+
+    def __getattr__(self, attribute: str) -> object:
+        return getattr(os, attribute)
+
+
+class _Win32Call:
+    """Stand-in for a ctypes foreign function that accepts argtypes/restype."""
+
+    def __init__(self, behaviour: Callable[..., object]) -> None:
+        self.behaviour = behaviour
+        self.calls: list[tuple[object, ...]] = []
+
+    def __call__(self, *args: object) -> object:
+        self.calls.append(args)
+        return self.behaviour(*args)
+
+
+def _gdi_capture(  # noqa: PLR0913 - each Win32 result is an independent fixture knob
+    monkeypatch: pytest.MonkeyPatch,
+    *,
+    live: bool = True,
+    measured: bool = True,
+    size: tuple[int, int] = (4, 3),
+    window_dc: int = 501,
+    memory_dc: int = 601,
+    printed: bool = True,
+    blitted: bool = False,
+    lines: int | None = None,
+) -> tuple[SimpleNamespace, SimpleNamespace]:
+    width, height = size
+
+    def rectangle(_window: object, value: Any) -> int:
+        value._obj.left, value._obj.top = 10, 20
+        value._obj.right, value._obj.bottom = 10 + width, 20 + height
+        return int(measured)
+
+    user32 = SimpleNamespace(
+        IsWindow=_Win32Call(lambda _window: int(live)),
+        GetWindowRect=_Win32Call(rectangle),
+        GetWindowDC=_Win32Call(lambda _window: window_dc),
+        ReleaseDC=_Win32Call(lambda *_args: 1),
+        PrintWindow=_Win32Call(lambda *_args: int(printed)),
+    )
+    gdi32 = SimpleNamespace(
+        CreateCompatibleDC=_Win32Call(lambda _dc: memory_dc),
+        CreateCompatibleBitmap=_Win32Call(lambda *_args: 701),
+        SelectObject=_Win32Call(lambda *_args: 801),
+        BitBlt=_Win32Call(lambda *_args: int(blitted)),
+        GetDIBits=_Win32Call(lambda *_args: height if lines is None else lines),
+        DeleteObject=_Win32Call(lambda _handle: 1),
+        DeleteDC=_Win32Call(lambda _handle: 1),
+    )
+    libraries = {"user32": user32, "gdi32": gdi32}
+    monkeypatch.setattr(window_recording, "os", _PlatformOs("nt"))
+    # ctypes.WinDLL exists only on Windows; the GDI binding is driven through fakes.
+    monkeypatch.setattr(ctypes, "WinDLL", lambda name, **_kwargs: libraries[name], raising=False)
+    return user32, gdi32
+
+
+def test_window_capture_binding_produces_a_bounded_bmp_and_releases_handles(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    user32, gdi32 = _gdi_capture(monkeypatch)
+    attestation = _FakeAttestation(window_id=77)
+    frame = window_recording.capture_attested_window_bmp(
+        cast("SoftwareTargetAttestation", attestation)
+    )
+    assert attestation.checks == 1
+    assert window_recording._validated_bmp(frame) == (4, 3)
+    assert gdi32.BitBlt.calls == []
+    assert gdi32.SelectObject.calls[-1] == (601, 801)
+    assert gdi32.DeleteObject.calls == [(701,)]
+    assert gdi32.DeleteDC.calls == [(601,)]
+    assert user32.ReleaseDC.calls == [(77, 501)]
+
+    _user32, fallback = _gdi_capture(monkeypatch, printed=False, blitted=True)
+    assert window_recording._validated_bmp(window_recording._capture_window_bmp(77)) == (4, 3)
+    assert len(fallback.BitBlt.calls) == 1
+
+
+@pytest.mark.parametrize(
+    ("knobs", "message"),
+    [
+        ({"live": False}, "no longer live"),
+        ({"measured": False}, "bounds could not be measured"),
+        ({"size": (0, 3)}, "bounded capture dimensions"),
+        ({"size": (9000, 1)}, "bounded capture dimensions"),
+        ({"window_dc": 0}, "device context is unavailable"),
+        ({"memory_dc": 0}, "capture surface could not be created"),
+        ({"printed": False}, "refused bounded visual capture"),
+        ({"lines": 1}, "could not be materialized"),
+    ],
+)
+def test_window_capture_binding_fails_closed(
+    monkeypatch: pytest.MonkeyPatch, knobs: dict[str, Any], message: str
+) -> None:
+    user32, gdi32 = _gdi_capture(monkeypatch, **knobs)
+    with pytest.raises(FormatError, match=message):
+        window_recording._capture_window_bmp(77)
+    if user32.GetWindowDC.calls and knobs.get("window_dc") != 0:
+        # Every handle acquired before the failure is released.
+        assert user32.ReleaseDC.calls == [(77, knobs.get("window_dc", 501))]
+        assert gdi32.DeleteObject.calls == [(701,)]
+
+
+def test_window_capture_binding_enforces_frame_budget_and_platform(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _gdi_capture(monkeypatch)
+    monkeypatch.setattr(window_recording, "_MAX_FRAME_BYTES", 8)
+    with pytest.raises(FormatError, match="bounded evidence budget"):
+        window_recording._capture_window_bmp(77)
+    monkeypatch.setattr(window_recording, "os", _PlatformOs("posix"))
+    with pytest.raises(FormatError, match="available only on Windows"):
+        window_recording._capture_window_bmp(77)

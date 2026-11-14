@@ -631,17 +631,20 @@ def test_http_route_rate_and_lifecycle_edges(tmp_path: Path) -> None:
         token = {"Authorization": "Bearer " + "x" * 24}
         assert _http_raw(host, port, "POST", "/missing", body=b"{}", headers=token)[0] == 404
         assert _http_raw(host, port, "POST", "/v1/submissions", body=b"{}", headers=token)[0] == 400
-        assert (
-            _http_raw(
-                host,
-                port,
-                "POST",
-                "/v1/submissions",
-                body=b"x" * (transport_limits.max_body_bytes + 1),
-                headers=token,
-            )[0]
-            == 413
+        # The limit is enforced from the declared length before any body is read.
+        # Streaming the oversized body would race the server's early close, which
+        # some kernels (macOS) surface to the sender as a broken pipe.
+        oversized = socket.create_connection((host, port), timeout=10)
+        oversized.sendall(
+            b"POST /v1/submissions HTTP/1.1\r\nHost: localhost\r\n"
+            + b"Authorization: Bearer "
+            + b"x" * 24
+            + b"\r\nContent-Length: "
+            + str(transport_limits.max_body_bytes + 1).encode()
+            + b"\r\nConnection: close\r\n\r\n"
         )
+        assert b" 413 " in oversized.recv(4096)
+        oversized.close()
         raw = socket.create_connection((host, port), timeout=10)
         raw.sendall(
             b"POST /v1/submissions HTTP/1.1\r\nHost: localhost\r\n"

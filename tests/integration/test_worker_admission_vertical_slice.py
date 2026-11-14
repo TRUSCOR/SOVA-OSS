@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from dataclasses import replace
 from datetime import UTC, datetime
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 from sova.formats import canonical_json_bytes, sha256_digest, validate_document
 from sova.worker.cas import ContentAddressedStore
@@ -19,7 +19,16 @@ from sova.worker.protocol import (
     sign_protocol_message,
 )
 from sova.worker.service import WorkerAdmissionService
-from tests.support.worker import digest, guest_keypair, worker_attestation, worker_manifest
+from tests.support.worker import (
+    digest,
+    guest_keypair,
+    host_path,
+    worker_attestation,
+    worker_manifest,
+)
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 def test_signed_job_is_peer_bound_cas_verified_and_compiled(tmp_path: Path) -> None:
@@ -68,12 +77,12 @@ def test_signed_job_is_peer_bound_cas_verified_and_compiled(tmp_path: Path) -> N
         controller_public_key=controller.public_key,
         content_store=store,
         host_policy=FirecrackerHostPolicy(
-            firecracker_binary=Path("C:/sova-worker/bin/firecracker"),
-            jailer_binary=Path("C:/sova-worker/bin/jailer"),
-            chroot_base=Path("C:/sova-worker/jailer"),
-            network_namespace_base=Path("C:/sova-worker/netns"),
+            firecracker_binary=host_path("sova-worker", "bin", "firecracker"),
+            jailer_binary=host_path("sova-worker", "bin", "jailer"),
+            chroot_base=host_path("sova-worker", "jailer"),
+            network_namespace_base=host_path("sova-worker", "netns"),
             content_store=store.root,
-            cgroup_base=Path("C:/sova-worker/cgroup"),
+            cgroup_base=host_path("sova-worker", "cgroup"),
             approved_firecracker_digest=digest("firecracker"),
             approved_jailer_digest=digest("jailer"),
         ),

@@ -51,7 +51,7 @@ def _same_path(left: Path, right: Path) -> bool:
 
 
 def _windows_process_identity(pid: int) -> tuple[Path, int]:
-    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)  # type: ignore[attr-defined,unused-ignore]
     kernel32.OpenProcess.argtypes = (wintypes.DWORD, wintypes.BOOL, wintypes.DWORD)
     kernel32.OpenProcess.restype = wintypes.HANDLE
     kernel32.QueryFullProcessImageNameW.argtypes = (
@@ -112,7 +112,7 @@ def _windows_process_identity(pid: int) -> tuple[Path, int]:
 
 
 def _windows_window_identity(window_id: int, pid: int) -> tuple[str, str]:
-    user32 = ctypes.WinDLL("user32", use_last_error=True)
+    user32 = ctypes.WinDLL("user32", use_last_error=True)  # type: ignore[attr-defined,unused-ignore]
     user32.IsWindow.argtypes = (wintypes.HWND,)
     user32.IsWindow.restype = wintypes.BOOL
     user32.GetWindowThreadProcessId.argtypes = (
@@ -145,8 +145,8 @@ def _windows_window_identity(window_id: int, pid: int) -> tuple[str, str]:
 
 
 def _windows_owned_top_level_windows(pid: int, title_contains: str | None) -> tuple[int, ...]:
-    user32 = ctypes.WinDLL("user32", use_last_error=True)
-    enum_callback = ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
+    user32 = ctypes.WinDLL("user32", use_last_error=True)  # type: ignore[attr-defined,unused-ignore]
+    enum_callback = ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)  # type: ignore[attr-defined,unused-ignore]
     user32.EnumWindows.argtypes = (enum_callback, wintypes.LPARAM)
     user32.EnumWindows.restype = wintypes.BOOL
     user32.IsWindowVisible.argtypes = (wintypes.HWND,)
@@ -176,9 +176,9 @@ def _windows_owned_top_level_windows(pid: int, title_contains: str | None) -> tu
             matches.append(int(window))
         return True
 
-    ctypes.set_last_error(0)
+    ctypes.set_last_error(0)  # type: ignore[attr-defined,unused-ignore]
     completed = bool(user32.EnumWindows(visit, 0))
-    error_code = ctypes.get_last_error()
+    error_code = ctypes.get_last_error()  # type: ignore[attr-defined,unused-ignore]
     # Win32 documents a zero return both for a real API failure and when an
     # enumeration callback stops. Some isolated/initializing window stations
     # also report zero with GetLastError unchanged. Our callback never stops;

@@ -25,7 +25,13 @@ from sova.worker.protocol import (
     sign_protocol_message,
 )
 from sova.worker.service import WorkerAdmissionService
-from tests.support.worker import digest, guest_keypair, worker_attestation, worker_manifest
+from tests.support.worker import (
+    digest,
+    guest_keypair,
+    unprivileged_lease_root,
+    worker_attestation,
+    worker_manifest,
+)
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -277,13 +283,15 @@ def test_service_reconstructs_plan_before_lifecycle_execution(tmp_path: Path) ->
 
 
 def test_service_rejects_live_execution_without_post_cleanup_network_receipt(
-    tmp_path: Path,
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     context = _context(tmp_path)
     context.service.network_policy = _network_policy(tmp_path)
     lease_root = (tmp_path / "identity-leases").resolve()
     lease_root.mkdir()
-    context.service.identity_leases = IdentitySlotLeaseTable(lease_root)
+    context.service.identity_leases = IdentitySlotLeaseTable(
+        unprivileged_lease_root(lease_root, monkeypatch)
+    )
     admitted = context.service.admit_signed_job(
         envelope=sign_protocol_message(_message(context.raw), context.controller),
         peer_certificate_der=CERTIFICATE,
@@ -324,13 +332,15 @@ def test_service_rejects_live_execution_without_post_cleanup_network_receipt(
 
 
 def test_service_releases_identity_slot_only_after_complete_live_network_evidence(
-    tmp_path: Path,
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     context = _context(tmp_path)
     context.service.network_policy = _network_policy(tmp_path)
     lease_root = (tmp_path / "identity-leases").resolve()
     lease_root.mkdir()
-    context.service.identity_leases = IdentitySlotLeaseTable(lease_root)
+    context.service.identity_leases = IdentitySlotLeaseTable(
+        unprivileged_lease_root(lease_root, monkeypatch)
+    )
     admitted = context.service.admit_signed_job(
         envelope=sign_protocol_message(_message(context.raw), context.controller),
         peer_certificate_der=CERTIFICATE,

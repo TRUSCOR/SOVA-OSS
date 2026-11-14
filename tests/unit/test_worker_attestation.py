@@ -93,7 +93,12 @@ def test_swap_probe_distinguishes_empty_active_and_unreadable(
     assert not attestation_module._swap_disabled()
 
 
-def test_collect_attestation_rejects_non_linux_host(tmp_path: Path) -> None:
+@pytest.mark.parametrize("system", ["Windows", "Darwin"])
+def test_collect_attestation_rejects_non_linux_host(
+    system: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Present a non-Linux kernel even when the suite itself runs on Linux.
+    monkeypatch.setattr("sova.worker.attestation.platform.system", lambda: system)
     with pytest.raises(FormatError, match="requires Linux"):
         collect_worker_attestation(
             worker_id="worker:test",

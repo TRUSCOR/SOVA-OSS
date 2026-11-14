@@ -20,7 +20,9 @@ from sova.runtime.sessions import BrowserProfileVault
 def test_windows_pid_probe_fails_closed_when_platform_apis_are_unavailable(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setattr(ctypes, "WinDLL", None)
+    # ctypes.WinDLL and ctypes.get_last_error exist only on Windows; the probe is
+    # driven through fakes so its fail-closed branches run on every platform.
+    monkeypatch.setattr(ctypes, "WinDLL", None, raising=False)
     assert sessions._windows_pid_is_alive(42) is True
 
     class _Function:
@@ -35,12 +37,33 @@ def test_windows_pid_probe_fails_closed_when_platform_apis_are_unavailable(
         GetExitCodeProcess=_Function(0),
         CloseHandle=_Function(1),
     )
-    monkeypatch.setattr(ctypes, "WinDLL", lambda *_a, **_k: kernel)
-    monkeypatch.delattr(ctypes, "get_last_error")
+    monkeypatch.setattr(ctypes, "WinDLL", lambda *_a, **_k: kernel, raising=False)
+    monkeypatch.delattr(ctypes, "get_last_error", raising=False)
     assert sessions._windows_pid_is_alive(42) is True
 
     kernel.OpenProcess.result = 1
     assert sessions._windows_pid_is_alive(42) is True
+
+    # Only ERROR_INVALID_PARAMETER proves absence; any other open failure stays live.
+    kernel.OpenProcess.result = 0
+    monkeypatch.setattr(ctypes, "get_last_error", lambda: 87, raising=False)
+    assert sessions._windows_pid_is_alive(42) is False
+    monkeypatch.setattr(ctypes, "get_last_error", lambda: 5, raising=False)
+    assert sessions._windows_pid_is_alive(42) is True
+
+    class _ExitCode:
+        def __init__(self, code: int) -> None:
+            self.code = code
+
+        def __call__(self, _handle: object, exit_code: Any) -> int:
+            exit_code._obj.value = self.code
+            return 1
+
+    kernel.OpenProcess.result = 1
+    kernel.GetExitCodeProcess = _ExitCode(259)
+    assert sessions._windows_pid_is_alive(42) is True
+    kernel.GetExitCodeProcess = _ExitCode(0)
+    assert sessions._windows_pid_is_alive(42) is False
 
 
 def test_profile_root_handle_identity_symlink_and_metadata_guards(

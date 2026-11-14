@@ -345,7 +345,9 @@ def test_posix_backend_refuses_non_linux_and_stages_digest_verified_content(
         Path(plan.cgroup_directory).parents[1],
     )
     backend = PosixFirecrackerBackend(policy)
-    with pytest.raises(FormatError, match="Linux"):
+    # Present a non-Linux kernel even when the suite itself runs on Linux.
+    monkeypatch.setattr(platform, "system", lambda: "Darwin")
+    with pytest.raises(FormatError, match="requires Linux"):
         backend.prepare(plan)
 
     binary_payloads = {

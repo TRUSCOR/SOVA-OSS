@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """Outcome judges for fresh runs.
 
 The default judge asks the verdict audit (``sova.audit``) whether the attacker's decisive
