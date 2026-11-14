@@ -297,13 +297,17 @@ class _SeedSnapshot:
 
 
 def _stat_identity(value: os.stat_result) -> tuple[int, int, int, int, int, int]:
+    # On Windows, st_ctime means creation time on older Pythons and metadata-change time on
+    # newer ones, and a stat by path can report it differently from a stat by handle, so it
+    # is left out there. File ID, size and mtime still detect a change; the seed digest binds it.
+    change = 0 if os.name == "nt" else value.st_ctime_ns
     return (
         value.st_dev,
         value.st_ino,
         value.st_mode,
         value.st_size,
         value.st_mtime_ns,
-        value.st_ctime_ns,
+        change,
     )
 
 

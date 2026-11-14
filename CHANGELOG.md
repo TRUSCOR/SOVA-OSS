@@ -28,6 +28,9 @@ security findings, whose results ship as `.sova` files this package verifies.
   renamed.
 - The local MCP server and the MCP client now report the installed package version instead of a
   fixed string.
+- Fixed spurious "workspace seed file changed while it was admitted" refusals on Windows with
+  Python 3.14: `st_ctime` is left out of the seed's file identity there, where its meaning differs
+  between Python versions and between a stat by path and by handle.
 
 ### Security
 
