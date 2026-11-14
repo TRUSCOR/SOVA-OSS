@@ -3,6 +3,9 @@
 
 from __future__ import annotations
 
+import os
+from pathlib import Path
+
 from sova.formats import sha256_digest
 from sova.trace.integrity import Ed25519Keypair, generate_ed25519_keypair
 from sova.worker.contracts import (
@@ -16,9 +19,18 @@ from sova.worker.contracts import (
     WorkerJobManifest,
 )
 
+# Host-policy fixtures need paths that are absolute on the machine running the
+# test: ``C:/...`` is relative on POSIX and ``/...`` is drive-relative on Windows.
+_HOST_ANCHOR = Path("C:/") if os.name == "nt" else Path("/")
+
 
 def digest(label: str) -> str:
     return sha256_digest(label.encode("utf-8"))
+
+
+def host_path(*parts: str) -> Path:
+    """Return a platform-absolute worker host path that tests never create."""
+    return _HOST_ANCHOR.joinpath(*parts)
 
 
 def guest_keypair() -> Ed25519Keypair:
@@ -94,4 +106,10 @@ def worker_attestation(
     )
 
 
-__all__ = ["digest", "guest_keypair", "worker_attestation", "worker_manifest"]
+__all__ = [
+    "digest",
+    "guest_keypair",
+    "host_path",
+    "worker_attestation",
+    "worker_manifest",
+]

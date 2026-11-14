@@ -9,7 +9,11 @@ import pytest
 
 from sova.formats import FormatError, canonical_json_bytes
 from sova.worker.deployment import read_worker_deployment_policy
-from tests.support.worker import digest
+from tests.support.worker import digest, host_path
+
+
+def _host(*parts: str) -> str:
+    return host_path("worker", *parts).as_posix()
 
 
 def _mapping() -> dict[str, object]:
@@ -20,23 +24,23 @@ def _mapping() -> dict[str, object]:
         "workerId": "worker:dedicated-01",
         "firecrackerVersion": "1.16.1",
         "hostPaths": {
-            "firecrackerBinary": "C:/worker/bin/firecracker",
-            "jailerBinary": "C:/worker/bin/jailer",
-            "chrootBase": "C:/worker/jailer",
-            "networkNamespaceBase": "C:/worker/netns",
-            "contentStore": "C:/worker/cas",
-            "cgroupBase": "C:/worker/cgroup",
-            "ipBinary": "C:/worker/bin/ip",
-            "nftBinary": "C:/worker/bin/nft",
-            "setprivBinary": "C:/worker/bin/setpriv",
-            "networkMediatorBinary": "C:/worker/bin/mediator",
-            "networkStateDirectory": "C:/worker/network-state",
-            "identityLeaseDirectory": "C:/worker/identity-leases",
-            "hostKernelImage": "C:/worker/host-kernel",
-            "microcodeImage": "C:/worker/microcode",
-            "guestKernelImage": "C:/worker/guest-kernel",
-            "rootFilesystemImage": "C:/worker/rootfs.ext4",
-            "advisorySnapshot": "C:/worker/advisories.json",
+            "firecrackerBinary": _host("bin", "firecracker"),
+            "jailerBinary": _host("bin", "jailer"),
+            "chrootBase": _host("jailer"),
+            "networkNamespaceBase": _host("netns"),
+            "contentStore": _host("cas"),
+            "cgroupBase": _host("cgroup"),
+            "ipBinary": _host("bin", "ip"),
+            "nftBinary": _host("bin", "nft"),
+            "setprivBinary": _host("bin", "setpriv"),
+            "networkMediatorBinary": _host("bin", "mediator"),
+            "networkStateDirectory": _host("network-state"),
+            "identityLeaseDirectory": _host("identity-leases"),
+            "hostKernelImage": _host("host-kernel"),
+            "microcodeImage": _host("microcode"),
+            "guestKernelImage": _host("guest-kernel"),
+            "rootFilesystemImage": _host("rootfs.ext4"),
+            "advisorySnapshot": _host("advisories.json"),
         },
         "network": {
             "egressInterface": "eth0",

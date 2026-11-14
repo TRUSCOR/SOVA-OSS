@@ -23,17 +23,23 @@ from sova.worker.firecracker import (
     build_firecracker_launch_plan,
     validate_cleanup_receipt,
 )
-from tests.support.worker import digest, guest_keypair, worker_attestation, worker_manifest
+from tests.support.worker import (
+    digest,
+    guest_keypair,
+    host_path,
+    worker_attestation,
+    worker_manifest,
+)
 
 
 def _policy() -> FirecrackerHostPolicy:
     return FirecrackerHostPolicy(
-        firecracker_binary=Path("C:/sova-worker/bin/firecracker"),
-        jailer_binary=Path("C:/sova-worker/bin/jailer"),
-        chroot_base=Path("C:/sova-worker/jailer"),
-        network_namespace_base=Path("C:/sova-worker/netns"),
-        content_store=Path("C:/sova-worker/cas"),
-        cgroup_base=Path("C:/sova-worker/cgroup"),
+        firecracker_binary=host_path("sova-worker", "bin", "firecracker"),
+        jailer_binary=host_path("sova-worker", "bin", "jailer"),
+        chroot_base=host_path("sova-worker", "jailer"),
+        network_namespace_base=host_path("sova-worker", "netns"),
+        content_store=host_path("sova-worker", "cas"),
+        cgroup_base=host_path("sova-worker", "cgroup"),
         approved_firecracker_digest=digest("firecracker"),
         approved_jailer_digest=digest("jailer"),
     )
@@ -159,7 +165,7 @@ def test_launch_plan_rejects_invalid_identity_slot_and_cas_digest() -> None:
     with pytest.raises(FormatError, match="exceeds"):
         build_firecracker_launch_plan(manifest, _admission(), _policy(), identity_slot=600_001)
     with pytest.raises(FormatError, match="approved CAS key"):
-        firecracker_module._cas_path(Path("C:/cas"), "bad")
+        firecracker_module._cas_path(host_path("cas"), "bad")
 
 
 def test_launch_plan_bounds_jailer_id_and_writable_seed() -> None:
@@ -177,11 +183,11 @@ def test_launch_plan_bounds_jailer_id_and_writable_seed() -> None:
 
 def test_host_policy_retains_platform_absolute_cgroup_default() -> None:
     policy = FirecrackerHostPolicy(
-        firecracker_binary=Path("C:/sova-worker/bin/firecracker"),
-        jailer_binary=Path("C:/sova-worker/bin/jailer"),
-        chroot_base=Path("C:/sova-worker/jailer"),
-        network_namespace_base=Path("C:/sova-worker/netns"),
-        content_store=Path("C:/sova-worker/cas"),
+        firecracker_binary=host_path("sova-worker", "bin", "firecracker"),
+        jailer_binary=host_path("sova-worker", "bin", "jailer"),
+        chroot_base=host_path("sova-worker", "jailer"),
+        network_namespace_base=host_path("sova-worker", "netns"),
+        content_store=host_path("sova-worker", "cas"),
         approved_firecracker_digest=digest("firecracker"),
         approved_jailer_digest=digest("jailer"),
     )
