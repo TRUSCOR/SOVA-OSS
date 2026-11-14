@@ -41,7 +41,7 @@ from sova.rerun.engine import (
     spend_sentence,
     write_output_capsule,
 )
-from sova.rerun.records import OutcomeJudge, benchmark_security_judge
+from sova.rerun.judges import audit_judge
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping, Sequence
@@ -49,6 +49,7 @@ if TYPE_CHECKING:
     from sova.rerun.decision import ContextRule
     from sova.rerun.findings import Finding
     from sova.rerun.providers import Budget
+    from sova.rerun.records import OutcomeJudge
 
 UpgradeResult = Literal["still-works", "stopped", "newly-works", "no-attack-on-either", "cant-tell"]
 UPGRADE_LABELS: Final[Mapping[str, str]] = {
@@ -231,7 +232,7 @@ def run_matrix(  # noqa: PLR0913 - judge and progress are optional hooks
     *,
     runner: EpisodeRunner,
     budget: Budget,
-    judge: OutcomeJudge = benchmark_security_judge,
+    judge: OutcomeJudge = audit_judge,
     progress: Callable[[str], None] | None = None,
 ) -> MatrixReport:
     """Run every finding on every model ``options.trials`` times (resumable)."""

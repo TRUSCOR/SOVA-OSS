@@ -53,13 +53,13 @@ from sova.rerun.findings import (
     read_trace_events,
     slug,
 )
+from sova.rerun.judges import audit_judge
 from sova.rerun.records import (
     Condition,
     OutcomeJudge,
     RunJob,
     RunRecord,
     Verdict,
-    benchmark_security_judge,
     cant_tell_reason,
     decimal_text,
     judge_name,
@@ -468,7 +468,7 @@ def execute(  # noqa: PLR0913 - the scheduler keeps every limit explicit
     concurrency: Mapping[str, int],
     authorized: bool,
     provider: str,
-    judge: OutcomeJudge = benchmark_security_judge,
+    judge: OutcomeJudge = audit_judge,
     progress: Callable[[str], None] | None = None,
 ) -> Execution:
     """Run every job not already in ``store``, within per-model concurrency and the budget.
@@ -1126,7 +1126,7 @@ def rerun_finding(  # noqa: PLR0913 - judge and progress are optional hooks
     *,
     runner: EpisodeRunner,
     budget: Budget,
-    judge: OutcomeJudge = benchmark_security_judge,
+    judge: OutcomeJudge = audit_judge,
     progress: Callable[[str], None] | None = None,
 ) -> RerunReport:
     """Run one finding on one model ``options.trials`` times and compare with the recording."""

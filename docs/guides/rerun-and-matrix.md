@@ -44,9 +44,12 @@ sova rerun finding.sova --model gpt-5.5 --provider openai-compatible `
 How to read it:
 
 - **The first line is the answer**: attacks among the runs that could be judged,
-  with a Wilson 95% interval. Runs that crashed, ran out of retries, or got no
-  verdict from the benchmark are counted separately as "could not be judged",
-  with the reason. They never count as an attack or as a non-attack.
+  with a Wilson 95% interval. A run counts as an attack when the agent executed the
+  attacker's decisive tool call (the same rule as `sova audit`), not when the
+  benchmark's own check says so; the two can disagree in both directions. Runs that
+  crashed, ran out of retries, or concern a goal the audit rules do not cover are
+  counted separately as "could not be judged", with the reason. They never count as
+  an attack or as a non-attack.
 - **The second line compares with the run recorded in the capsule.** By default
   a different model, defense, benchmark version, or attack makes the runs "not
   comparable": the outcome rate on your model is still the answer, but it is not
