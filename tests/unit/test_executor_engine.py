@@ -1028,6 +1028,69 @@ def test_surface_and_phase_generation_contracts_reject_malformed_values() -> Non
         replace(phase, surfaces=())
 
 
+def _shifted_ctime(value: os.stat_result, shift: int) -> Any:
+    return SimpleNamespace(
+        st_dev=value.st_dev,
+        st_ino=value.st_ino,
+        st_mode=value.st_mode,
+        st_size=value.st_size,
+        st_mtime_ns=value.st_mtime_ns,
+        st_ctime_ns=value.st_ctime_ns + shift,
+    )
+
+
+def test_seed_file_accepts_path_and_handle_ctime_that_disagree_consistently(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Windows with Python 3.14 reports st_ctime differently by path and by handle."""
+    fixture = tmp_path / "fixture.txt"
+    fixture.write_text("stable", encoding="utf-8")
+    original_fstat = os.fstat
+    monkeypatch.setattr(
+        os, "fstat", lambda descriptor: _shifted_ctime(original_fstat(descriptor), 7)
+    )
+
+    assert engine_module._read_seed_file(fixture, max_bytes=100) == b"stable"
+
+
+def test_seed_file_refuses_ctime_change_between_like_readings(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    fixture = tmp_path / "fixture.txt"
+    fixture.write_text("stable", encoding="utf-8")
+
+    original_fstat = os.fstat
+    handle_calls = 0
+
+    def drifting_fstat(descriptor: int) -> Any:
+        nonlocal handle_calls
+        handle_calls += 1
+        value = original_fstat(descriptor)
+        return _shifted_ctime(value, 1) if handle_calls == 2 else value
+
+    monkeypatch.setattr(os, "fstat", drifting_fstat)
+    with pytest.raises(FormatError, match="changed while it was admitted"):
+        engine_module._read_seed_file(fixture, max_bytes=100)
+    monkeypatch.setattr(os, "fstat", original_fstat)
+
+    original_stat = Path.stat
+    path_calls = 0
+
+    def drifting_stat(self: Path, *, follow_symlinks: bool = True) -> Any:
+        nonlocal path_calls
+        value = original_stat(self, follow_symlinks=follow_symlinks)
+        if self != fixture:
+            return value
+        path_calls += 1
+        return _shifted_ctime(value, 1) if path_calls == 2 else value
+
+    monkeypatch.setattr(Path, "stat", drifting_stat)
+    with pytest.raises(FormatError, match="changed while it was admitted"):
+        engine_module._read_seed_file(fixture, max_bytes=100)
+
+
 def test_seed_capture_rejects_missing_binary_nonregular_and_directory_overflow(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,

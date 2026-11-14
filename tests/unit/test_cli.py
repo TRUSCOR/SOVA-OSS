@@ -92,7 +92,7 @@ def test_source_checkout_has_version_fallback(monkeypatch: pytest.MonkeyPatch) -
     with monkeypatch.context() as context:
         context.setattr(importlib.metadata, "version", missing_distribution)
         reloaded = importlib.reload(sova)
-        assert reloaded.__version__ == "0.1.0"
+        assert reloaded.__version__ == "0.1.1"
 
     importlib.reload(sova)
 

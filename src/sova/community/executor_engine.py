@@ -297,18 +297,24 @@ class _SeedSnapshot:
 
 
 def _stat_identity(value: os.stat_result) -> tuple[int, int, int, int, int, int]:
-    # On Windows, st_ctime means creation time on older Pythons and metadata-change time on
-    # newer ones, and a stat by path can report it differently from a stat by handle, so it
-    # is left out there. File ID, size and mtime still detect a change; the seed digest binds it.
-    change = 0 if os.name == "nt" else value.st_ctime_ns
     return (
         value.st_dev,
         value.st_ino,
         value.st_mode,
         value.st_size,
         value.st_mtime_ns,
-        change,
+        value.st_ctime_ns,
     )
+
+
+def _link_identity(value: os.stat_result) -> tuple[int, int, int, int, int]:
+    """Fields that a stat by path and a stat by open handle report alike on every platform.
+
+    On Windows with Python 3.14, st_ctime read by path and read through a handle can differ
+    for a file nobody touched. Readings are therefore compared like with like: path with path
+    and handle with handle in full, st_ctime included, and path with handle on these fields.
+    """
+    return (value.st_dev, value.st_ino, value.st_mode, value.st_size, value.st_mtime_ns)
 
 
 def _read_seed_file(path: Path, *, max_bytes: int) -> bytes:
@@ -342,13 +348,12 @@ def _read_seed_file(path: Path, *, max_bytes: int) -> bytes:
             "SOVA-EXECUTOR-ENGINE-SEED",
             "workspace seed file could not be read through a stable descriptor",
         ) from error
-    identity = _stat_identity(before)
     if (
         len(data) > max_bytes
         or len(data) != before.st_size
-        or _stat_identity(opened) != identity
-        or _stat_identity(stable) != identity
-        or _stat_identity(after) != identity
+        or _stat_identity(after) != _stat_identity(before)
+        or _stat_identity(stable) != _stat_identity(opened)
+        or _link_identity(opened) != _link_identity(before)
     ):
         raise FormatError(
             "SOVA-EXECUTOR-ENGINE-SEED",

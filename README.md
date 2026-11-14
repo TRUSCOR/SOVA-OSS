@@ -65,12 +65,13 @@
 > review, and evidence oracles remain the operator's responsibility.
 
 > [!TIP]
-> **Preprint, version 1.1 (2026-11-13):** [.sova: Portable, Evidence-Bounded
-> Reproduction of AI-Agent Security Findings](https://github.com/TRUSCOR/research).
-> Its results ship as `.sova` files that this package verifies offline: four
-> real prompt-injection findings, every reply the paper read, and a 629-pair
-> GPT-4o re-run study whose headline numbers `sova compare` recomputes. Start
-> with [the findings](https://github.com/TRUSCOR/research/tree/main/artifacts/pf-v1.1/findings).
+> **Preprint, version 1.1:** [Did the Attack Really Work? Auditing, Re-running,
+> and Proving AI-Agent Security Findings with .sova](https://github.com/TRUSCOR/research/tree/main/preprints).
+> It checks AgentDojo's attack verdicts against what agents actually did,
+> re-runs recorded attacks on current models, and tests when two runs are
+> comparable, under protocols published before the runs. Every run it reports
+> ships as a `.sova` file that this package verifies offline. Start with
+> [the artifact](https://github.com/TRUSCOR/research/tree/main/artifacts/pf-v1.1).
 
 ## Start here: three questions about an attack on an AI agent
 

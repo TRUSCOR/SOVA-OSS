@@ -9,6 +9,18 @@ have independent version ledgers.
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-11-15
+
+### Fixed
+
+- Restored the full workspace-seed file check on Windows. 0.1.0 left `st_ctime` out there to
+  stop false "changed while it was admitted" refusals on Python 3.14. The cause, measured: on
+  Python 3.14 for Windows, `st_ctime` read by path and read through an open handle disagree for
+  an unchanged file (1,720 of 3,000 trials), while readings of the same kind always agree. The
+  check now compares path readings with each other and handle readings with each other in full,
+  `st_ctime` included, and links the path to the handle by device, inode, type, size and
+  modification time, on every platform. No change to the `.sova` formats or the core commands.
+
 ## [0.1.0] - 2026-11-15
 
 First release on PyPI: `pip install sova-oss`, with `pip install "sova-oss[agentdojo]"` for
@@ -410,6 +422,7 @@ security findings, whose results ship as `.sova` files this package verifies.
 Pre-alpha engineering-foundation version, superseded by 0.1.0 before any
 publication.
 
-[Unreleased]: https://github.com/TRUSCOR/SOVA-OSS/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/TRUSCOR/SOVA-OSS/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/TRUSCOR/SOVA-OSS/releases/tag/v0.1.1
 [0.1.0]: https://github.com/TRUSCOR/SOVA-OSS/releases/tag/v0.1.0
 [0.1.0a0]: https://github.com/TRUSCOR/SOVA-OSS/commits/main
