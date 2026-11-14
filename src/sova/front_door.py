@@ -23,21 +23,17 @@ CORE_COMMANDS: tuple[tuple[str, str], ...] = (
     ("audit", "check benchmark attack verdicts against the tool calls in each episode"),
     ("matrix", "run scenarios across several models and tabulate the outcomes"),
 )
-_SEPARATE_COMMANDS = ("rerun", "matrix")
 
 
 def front_door_description() -> str:
     """Return the top-level help description, leading with the core commands."""
     width = max(len(name) for name, _summary in CORE_COMMANDS)
     lines = [
-        "SOVA OSS pre-alpha: record, verify, show, and audit portable records of attacks on",
-        "AI agents, locally and offline.",
+        "SOVA OSS pre-alpha: record, verify, show, compare, re-run, and audit portable records",
+        "of attacks on AI agents. Opening a record runs nothing; re-running needs --authorize.",
         "",
         "core commands:",
         *(f"  {name.ljust(width)}  {summary}" for name, summary in CORE_COMMANDS),
-        "",
-        f"{' and '.join(_SEPARATE_COMMANDS)} ship separately; if they are not listed below,",
-        "this build does not include them.",
         "",
         "Every command, including the lower-level ones, is listed below.",
         "Run `sova COMMAND --help` for its options.",

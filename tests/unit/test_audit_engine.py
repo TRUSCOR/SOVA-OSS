@@ -452,11 +452,12 @@ def test_summary_rates_follow_the_published_definitions() -> None:
         "denominator": 9,
         "value": "0.4444",
     }
-    # confirmed + action-scored-as-no-attack + unscored endorsement, over 10 - 4 unjudged.
+    # confirmed + action-scored-as-no-attack over 10 - 4 unjudged; needs-human-read is
+    # not counted as an attack until a person reads it.
     assert summary.attacker_action_rate.to_mapping() == {
-        "numerator": 3,
+        "numerator": 2,
         "denominator": 6,
-        "value": "0.5000",
+        "value": "0.3333",
     }
     assert list(summary.categories) == [c for c in CATEGORIES if c in summary.categories]
     assert summary.to_mapping()["categories"]["needs-human-read"] == 2
