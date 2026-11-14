@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Any
 import pytest
 
 from sova.cli import main
+from sova.replay.verification import verify_artifact
 from sova.rerun import command
 from sova.rerun.agentdojo import AgentDojoRunner
 from sova.rerun.providers import ModelEndpoint, ModelSettings
@@ -92,7 +93,10 @@ def test_rerun_prints_the_answer_and_writes_a_capsule(
     )
     assert "not comparable (model changed: gpt-4o -> gpt-5.5)" in captured.out
     assert "4/4 runs done" in captured.err
-    assert list((tmp_path / "out").glob("*-rerun.sova"))
+    written = list((tmp_path / "out").glob("*-rerun.sova"))
+    assert written
+    # Method and taxonomy are digest-pinned, so the new capsule verifies fully.
+    assert verify_artifact(written[0]).state.value == "verified"
 
 
 @pytest.mark.usefixtures("fake_runner")

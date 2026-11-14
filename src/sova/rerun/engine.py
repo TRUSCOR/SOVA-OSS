@@ -1100,6 +1100,28 @@ def write_output_capsule(  # noqa: PLR0913 - explicit package contents
         "tools": [f"agentdojo=={AGENTDOJO_VERSION}"],
         "platforms": [],
     }
+    # Pin the method and taxonomy to the digest of their exact declared description, so
+    # `sova verify` can confirm both rather than report them as only named.
+    goals = sorted(
+        {
+            (finding.parameters.get("suite", ""), finding.parameters.get("injectionTask", ""))
+            for finding in findings
+        }
+    )
+    manifest["methodology"] = {
+        "id": "sova.rerun.agentdojo",
+        "version": AGENTDOJO_VERSION,
+        "digest": sha256_digest(
+            canonical_json_bytes(
+                {"runner": "sova rerun", "agentdojo": AGENTDOJO_VERSION, "judge": "sova.audit"}
+            )
+        ),
+    }
+    manifest["taxonomy"] = {
+        "id": "agentdojo.injection-task",
+        "version": "v1.2.2",
+        "digest": sha256_digest(canonical_json_bytes([list(goal) for goal in goals])),
+    }
     manifest["safety"] = {
         "impact": "none",
         "forbiddenEffects": [
