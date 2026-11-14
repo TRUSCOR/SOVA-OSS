@@ -23,7 +23,7 @@ from sova.rerun.engine import (
     rerun_finding,
 )
 from sova.rerun.findings import discover_capsules, load_finding, slug
-from sova.rerun.matrix import MatrixOptions, run_matrix
+from sova.rerun.matrix import UPGRADE_LABELS, MatrixOptions, run_matrix
 from sova.rerun.providers import (
     OPENAI_APIS,
     PROVIDERS,
@@ -52,6 +52,10 @@ MATRIX_EPILOG = """\
 examples:
   sova matrix findings/ --models a,b,c --trials 3 --authorize --out results/
   sova matrix findings/ --baseline old-model --candidate new-model --trials 5 --authorize
+  sova matrix findings/ --baseline old --candidate new --authorize --fail-on still-works,newly-works
+
+With --fail-on, the command exits with status 1 when any finding lands in one of the named
+classes, so a CI job can block a model upgrade on which a known attack still works.
 
 Runs already recorded in --out are reused, so an interrupted matrix can be resumed.
 """
@@ -210,6 +214,13 @@ def add_matrix_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--models", metavar="A,B,C", help="comma-separated model ids")
     parser.add_argument("--baseline", metavar="MODEL", help="upgrade check: the current model")
     parser.add_argument("--candidate", metavar="MODEL", help="upgrade check: the new model")
+    parser.add_argument(
+        "--fail-on",
+        type=_upgrade_classes,
+        metavar="A,B",
+        help="upgrade check: exit with status 1 if any finding is in one of these classes "
+        f"({', '.join(UPGRADE_LABELS)})",
+    )
     _add_common(parser)
 
 
@@ -218,6 +229,14 @@ def _changes(value: str) -> tuple[str, ...]:
     unknown = [name for name in names if name not in CHANGES]
     if not names or unknown:
         message = f"choose from {', '.join(CHANGES)}"
+        raise argparse.ArgumentTypeError(message)
+    return names
+
+
+def _upgrade_classes(value: str) -> frozenset[str]:
+    names = frozenset(item.strip() for item in value.split(",") if item.strip())
+    if not names or not names <= set(UPGRADE_LABELS):
+        message = f"choose from {', '.join(UPGRADE_LABELS)}"
         raise argparse.ArgumentTypeError(message)
     return names
 
@@ -405,6 +424,8 @@ def run_matrix_command(
     out = stdout or sys.stdout
     err = stderr or sys.stderr
     models, baseline, candidate = _matrix_models(args)
+    if args.fail_on and baseline is None:
+        raise RerunError("SOVA-MATRIX-FAIL-ON", "--fail-on needs --baseline and --candidate")
     settings_for = settings_factory(args)
     described = {model: settings_for(model).describe() for model in models}
     findings = [load_finding(path) for path in discover_capsules(args.findings)]
@@ -435,6 +456,18 @@ def run_matrix_command(
         out.write(json.dumps(report.to_json(), indent=2, sort_keys=True) + "\n")
     else:
         out.write(report.render() + "\n")
+    if args.fail_on:
+        failing = sorted(
+            finding.label
+            for index, finding in enumerate(findings)
+            if report.upgrades.get(index) in args.fail_on
+        )
+        if failing:
+            err.write(
+                f"--fail-on: {len(failing)} finding(s) in {', '.join(sorted(args.fail_on))}: "
+                f"{', '.join(failing)}\n"
+            )
+            return 1
     return 0
 
 

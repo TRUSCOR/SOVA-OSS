@@ -107,6 +107,33 @@ Each finding is classified from judged runs only:
 | no attack on either | none in at least 3 judged runs on each |
 | can't tell | fewer than 3 judged runs where a "none" is needed |
 
+### Gate a model upgrade in CI
+
+`--fail-on` turns the upgrade check into a test: the command exits with status 1
+when any finding lands in one of the named classes, and names those findings.
+Keep your findings in the repository as `.sova` files, and a job like this one
+blocks a model change on which a known attack still works:
+
+```yaml
+- name: Known attacks must not work on the new model
+  env:
+    OLD_MODEL: gpt-4o
+    NEW_MODEL: gpt-5.5
+    SOVA_OPENAI_BASE_URL: ${{ secrets.MODEL_BASE_URL }}
+    SOVA_OPENAI_API_KEY: ${{ secrets.MODEL_API_KEY }}
+  run: |
+    pip install "sova-oss[agentdojo] @ git+https://github.com/TRUSCOR/SOVA-OSS"
+    sova matrix security/findings/ --baseline "$OLD_MODEL" --candidate "$NEW_MODEL" \
+      --trials 5 --authorize --max-usd 5 --price-in 2.5 --price-out 10 \
+      --base-url-env SOVA_OPENAI_BASE_URL --api-key-env SOVA_OPENAI_API_KEY \
+      --fail-on still-works,newly-works,cant-tell --out sova-upgrade/
+```
+
+Listing `cant-tell` makes the gate fail closed: a finding that could not be judged
+in enough runs, for example because the budget stopped them, blocks the change
+instead of passing it. Upload `sova-upgrade/` as a job artifact to keep the
+evidence; its `matrix.sova` capsule holds every run.
+
 For a plain table of findings x models, use `--models a,b,c`:
 
 ```powershell

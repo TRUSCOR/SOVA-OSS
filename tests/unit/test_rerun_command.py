@@ -214,6 +214,7 @@ def test_matrix_upgrade_check_through_the_cli(
         (["--baseline", "b"], "both --baseline and --candidate"),
         (["--baseline", "b", "--candidate", "b"], "must differ"),
         ([], "give --models"),
+        (["--models", "a", "--fail-on", "stopped"], "--fail-on needs --baseline"),
     ],
 )
 @pytest.mark.usefixtures("fake_runner")
@@ -226,6 +227,41 @@ def test_matrix_argument_errors(
     )
     assert code == 2
     assert message in capsys.readouterr().err
+
+
+@pytest.mark.usefixtures("fake_runner")
+def test_matrix_fail_on_gates_an_upgrade(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    finding_capsule(tmp_path / "in", "one")
+    base = [
+        "matrix",
+        str(tmp_path / "in"),
+        "--authorize",
+        "--trials",
+        "3",
+        "--out",
+        str(tmp_path / "out"),
+    ]
+    # The attack stops working on the new model, so the gate passes.
+    upgrade = ["--baseline", "old", "--candidate", "new", "--fail-on", "still-works,newly-works"]
+    assert main([*base, *upgrade]) == 0
+    assert "--fail-on" not in capsys.readouterr().err
+    # It still works on gpt-5.5, so the gate fails with status 1 and names the finding.
+    upgrade = ["--baseline", "gpt-4o", "--candidate", "gpt-5.5", "--fail-on", "still-works"]
+    assert main([*base, *upgrade]) == 1
+    error = capsys.readouterr().err
+    assert "--fail-on: 1 finding(s) in still-works: " in error
+
+
+@pytest.mark.parametrize("value", ["works", ",", "still-works,bogus"])
+def test_matrix_fail_on_rejects_unknown_classes(
+    tmp_path: Path, value: str, capsys: pytest.CaptureFixture[str]
+) -> None:
+    with pytest.raises(SystemExit) as exit_info:
+        main(["matrix", str(tmp_path), "--baseline", "a", "--candidate", "b", "--fail-on", value])
+    assert exit_info.value.code == 2
+    assert "choose from still-works" in capsys.readouterr().err
 
 
 @pytest.mark.usefixtures("fake_runner")
