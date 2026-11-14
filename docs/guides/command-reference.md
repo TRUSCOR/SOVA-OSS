@@ -12,6 +12,7 @@ human text or HTML artifact is the command's purpose.
 | Setup | `init`, `doctor`, `data delete` |
 | Capsule | `inspect`, `validate`, `lint`, `verify`, `migrate`, `compat`, `format`, `hash`, `template`, `pack` |
 | Trace/replay | `playback`, one-step `replay FINDING.sova`, `replay open`, `replay modes`, `replay timeline`, `replay capsule`, `replay serve`, `replay study`, `replay clip`, `query`, `compare`, `export`, `recover-trace` |
+| Re-run findings | `rerun`, `matrix` |
 | First value | `map`, `check`, `demo`, `safety backends`, `safety attest-docker`, `safety attest-gvisor`, `executors receipts` |
 | Search and analysis | `hunt owned-web-fixture`, `hunt browser`, `hunt agent-browser`, `hunt adaptive-browser`, `hunt-demo`, `forensics reconstruct`, `forensics attribute`, `forensics browser-counterfactual`, `forensics benchmark`, `forensics blind-fixture`, `forensics blind-run`, `forensics blind-score`, `forensics blind-keygen`, `forensics blind-sign-key`, `evidence`, `case build`, `adjudicate`, `compose` |
 | Methodology | `methodology library-export`, `methodology playbook-validate`, `methodology policy-create`, `methodology compile`, `methodology observations-template`, `methodology replan`, `methodology keygen`, `methodology contribute` |
@@ -30,6 +31,18 @@ did it execute? `sova record agentdojo LOG-OR-DIR --out DIR` writes a
 `.sova-trace` and `.sova` capsule per run log (or one nested bundle with
 `--bundle`). `sova show FILE` prints a capsule like `inspect` and a trace like
 `playback`. See [Audit benchmark verdicts and record runs](audit-and-record.md).
+
+`sova rerun FINDING.sova --model M --authorize` runs a recorded AgentDojo finding
+again on model `M` in AgentDojo's simulated environments and reports attacks among
+judged runs with a Wilson 95% interval, the runs that could not be judged and why,
+and whether the recorded outcome was reproduced. A different model, defense,
+benchmark version, or attack makes the comparison "not comparable" while the
+outcome rate stays the answer. `sova matrix` runs findings x models x trials and,
+with `--baseline`/`--candidate`, classifies each finding across a model upgrade.
+Keys come only from the environment variables named on the command line. Without
+`--authorize` neither command calls a model; both reuse runs already in `--out`.
+Needs the optional `sova-oss[agentdojo]` extra. See the
+[re-run guide](rerun-and-matrix.md).
 
 `release dossier` requires the exact canonical `sova.public-claims-snapshot`
 between the claims-register and destination arguments. The snapshot covers the

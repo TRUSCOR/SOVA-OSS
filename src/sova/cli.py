@@ -259,6 +259,12 @@ from sova.replay import (
     verify_artifact,
 )
 from sova.reproduction import compare_observable_outcomes
+from sova.rerun.command import (
+    add_matrix_arguments,
+    add_rerun_arguments,
+    run_matrix_command,
+    run_rerun_command,
+)
 from sova.runtime import (
     BrowserProfileLease,
     BrowserProfileVault,
@@ -970,6 +976,19 @@ def build_parser() -> argparse.ArgumentParser:  # noqa: PLR0915
         help="event kind to compare; repeat to select multiple kinds",
     )
     compare_parser.set_defaults(handler=_compare)
+
+    rerun_parser = commands.add_parser(
+        "rerun",
+        help="re-run a recorded AgentDojo finding on a model (model calls need --authorize)",
+    )
+    add_rerun_arguments(rerun_parser)
+    rerun_parser.set_defaults(handler=_rerun)
+    matrix_parser = commands.add_parser(
+        "matrix",
+        help="re-run findings x models x trials, or check a model upgrade (needs --authorize)",
+    )
+    add_matrix_arguments(matrix_parser)
+    matrix_parser.set_defaults(handler=_matrix)
 
     export_parser = commands.add_parser(
         "export",
@@ -5564,6 +5583,14 @@ def _compare(args: argparse.Namespace) -> int:
     result = compare_observable_outcomes(args.left, args.right, kinds=kinds)
     sys.stdout.buffer.write(canonical_json_bytes(asdict(result)) + b"\n")
     return 0 if result.equivalent else 1
+
+
+def _rerun(args: argparse.Namespace) -> int:
+    return run_rerun_command(args)
+
+
+def _matrix(args: argparse.Namespace) -> int:
+    return run_matrix_command(args)
 
 
 def _export(args: argparse.Namespace) -> int:
