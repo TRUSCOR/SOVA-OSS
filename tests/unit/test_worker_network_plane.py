@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import json
+import os
+import signal
 import stat
 import subprocess
 from dataclasses import dataclass, field, replace
@@ -33,7 +35,26 @@ from sova.worker.network_plane import (
     _validated_flow_receipt,
     build_firecracker_network_plan,
 )
-from tests.support.worker import digest, guest_keypair, worker_attestation, worker_manifest
+from tests.support.worker import (
+    digest,
+    guest_keypair,
+    owner_uid,
+    worker_attestation,
+    worker_manifest,
+)
+
+
+@pytest.fixture(autouse=True)
+def signalled_process_groups(monkeypatch: pytest.MonkeyPatch) -> list[tuple[int, int]]:
+    """Record mediator group signals; fake mediators carry fixed, unrelated pids.
+
+    Without this, POSIX runs would deliver SIGTERM/SIGKILL to whatever real
+    process group happens to own pid 4242 or 5252 on the test host.
+    """
+    sent: list[tuple[int, int]] = []
+    if hasattr(os, "killpg"):
+        monkeypatch.setattr(os, "killpg", lambda pid, number: sent.append((pid, number)))
+    return sent
 
 
 def _firecracker_policy(tmp_path: Path) -> FirecrackerHostPolicy:
@@ -567,8 +588,10 @@ def test_backend_captures_exact_ordered_flow_receipts(
     receipt_directory.mkdir(parents=True)
     payload = _flow_payload(plan.job_id, 1)
     (receipt_directory / "000001.json").write_bytes(payload)
+    # The receipt files below are written by this test process, which stands in
+    # for the per-job mediator identity that owns them on a live worker.
     backend = FirecrackerNetworkPlaneBackend(
-        _network_policy(tmp_path), replace(plan, mediator_uid=0), _Commands()
+        _network_policy(tmp_path), replace(plan, mediator_uid=owner_uid()), _Commands()
     )
     observed = backend._capture_mediator_receipts(state)
     assert observed is not None and observed.startswith("sha256:")
@@ -584,7 +607,7 @@ def test_backend_captures_exact_ordered_flow_receipts(
     metadata = SimpleNamespace(
         st_mode=stat.S_IFREG | 0o600,
         st_nlink=1,
-        st_uid=0,
+        st_uid=owner_uid(),
         st_size=len(_flow_payload(plan.job_id, 2)) + 1,
     )
     monkeypatch.setattr("sova.worker.network_plane.os.fstat", lambda _descriptor: metadata)
@@ -710,11 +733,13 @@ def test_receipt_capture_rejects_path_owner_type_count_and_byte_drift(
             _Commands(),
         )._capture_mediator_receipts(state)
 
-    backend = FirecrackerNetworkPlaneBackend(policy, replace(plan, mediator_uid=0), _Commands())
+    backend = FirecrackerNetworkPlaneBackend(
+        policy, replace(plan, mediator_uid=owner_uid()), _Commands()
+    )
     metadata = SimpleNamespace(
         st_mode=stat.S_IFDIR,
         st_nlink=1,
-        st_uid=0,
+        st_uid=owner_uid(),
         st_size=len(payload),
     )
     monkeypatch.setattr("sova.worker.network_plane.os.fstat", lambda _descriptor: metadata)
@@ -824,3 +849,23 @@ def test_mediator_group_kill_failure_is_observed_after_term(
     monkeypatch.setattr("sova.worker.network_plane.os.killpg", killpg, raising=False)
     assert backend._stop_mediator() is False
     assert calls == 2
+
+
+def test_mediator_stop_signals_its_group_or_falls_back_to_the_process_handle(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    signalled_process_groups: list[tuple[int, int]],
+) -> None:
+    _manifest, _launch, plan = _plans(tmp_path)
+    backend = FirecrackerNetworkPlaneBackend(_network_policy(tmp_path), plan, _Commands())
+    backend._mediator = _Process()
+    assert backend._stop_mediator() is True
+    expected = [(4242, signal.SIGTERM)] if hasattr(os, "killpg") else []
+    assert signalled_process_groups == expected
+
+    monkeypatch.delattr(os, "killpg", raising=False)
+    backend._mediator = _Process()
+    assert backend._stop_mediator() is True
+    backend._mediator = _HungProcess()
+    assert backend._stop_mediator() is False
+    assert signalled_process_groups == expected
