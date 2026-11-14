@@ -205,6 +205,22 @@ def test_recording_refuses_to_overwrite(tmp_path: Path) -> None:
         record_agentdojo_log(source, tmp_path / "out", author="a")
 
 
+def test_repeated_runs_of_one_episode_get_distinct_names(tmp_path: Path) -> None:
+    runs = tmp_path / "runs"
+    first = write_log(runs / "t1.json", agentdojo_log())
+    second = write_log(runs / "t2.json", agentdojo_log(duration=9.0))
+    used: set[str] = set()
+    one = record_agentdojo_log(first, tmp_path / "out", author="a", used_stems=used)
+    two = record_agentdojo_log(second, tmp_path / "out", author="a", used_stems=used)
+    assert one.capsule != two.capsule
+    assert two.capsule.stem.startswith(one.capsule.stem + "--")
+    assert len(two.capsule.stem) == len(one.capsule.stem) + 10
+    bundle = record_agentdojo_bundle([first, second], tmp_path / "b" / "r.sova", author="a")
+    reader = PackageReader(bundle.capsule)
+    nested = [item.path for item in reader.verify("sova.capsule") if item.role == "capsule"]
+    assert len(nested) == 2
+
+
 def test_directory_discovery_and_bundle(tmp_path: Path) -> None:
     runs = tmp_path / "runs"
     write_log(runs / "a" / "injection_task_0.json", agentdojo_log())

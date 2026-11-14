@@ -46,8 +46,9 @@ def record_agentdojo(  # noqa: PLR0913 - every option is an explicit CLI input
         recorded = record_agentdojo_bundle(logs, destination, author=author)
         stdout.write(f"{recorded.capsule_digest}  {recorded.capsule}\n")
     else:
+        used_stems: set[str] = set()
         for log in logs:
-            episode = record_agentdojo_log(log, out_dir, author=author)
+            episode = record_agentdojo_log(log, out_dir, author=author, used_stems=used_stems)
             stdout.write(f"{episode.capsule_digest}  {episode.capsule}\n")
     layout = "one bundle capsule" if bundle else "a .sova capsule and its .sova-trace each"
     stdout.write(

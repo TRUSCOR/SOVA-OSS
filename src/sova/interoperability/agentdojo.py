@@ -467,15 +467,24 @@ class _Converted:
     source_digest: str
 
 
-def _convert(log_path: Path, out_dir: Path, *, author: str) -> _Converted:
+def _convert(
+    log_path: Path, out_dir: Path, *, author: str, used_stems: set[str] | None = None
+) -> _Converted:
     raw = log_path.read_bytes()
     log = parse_agentdojo_log(raw)
     run = _run_of(log)
-    out_dir.mkdir(parents=True, exist_ok=True)
-    trace = out_dir / f"{run.stem}.sova-trace"
-    capsule = out_dir / f"{run.stem}.sova"
-    _refuse_existing(trace, capsule)
     digest = sha256_digest(raw)
+    stem = run.stem
+    if used_stems is not None:
+        # Repeated runs of one episode in a single recording get a suffix from their own
+        # content digest, so names stay deterministic and nothing is ever overwritten.
+        if stem in used_stems:
+            stem = f"{stem}--{digest.split(':', 1)[1][:8]}"
+        used_stems.add(stem)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    trace = out_dir / f"{stem}.sova-trace"
+    capsule = out_dir / f"{stem}.sova"
+    _refuse_existing(trace, capsule)
     write_agentdojo_trace(trace, log, source_name=log_path.name, source_digest=digest)
     scenario = agentdojo_scenario(run)
     manifest = _manifest(
@@ -491,9 +500,15 @@ def _convert(log_path: Path, out_dir: Path, *, author: str) -> _Converted:
     return _Converted(run, trace, capsule, capsule_digest, digest)
 
 
-def record_agentdojo_log(log_path: Path, out_dir: Path, *, author: str) -> RecordedEpisode:
-    """Convert one AgentDojo log into ``<stem>.sova-trace`` and ``<stem>.sova``."""
-    converted = _convert(log_path, out_dir, author=author)
+def record_agentdojo_log(
+    log_path: Path, out_dir: Path, *, author: str, used_stems: set[str] | None = None
+) -> RecordedEpisode:
+    """Convert one AgentDojo log into ``<stem>.sova-trace`` and ``<stem>.sova``.
+
+    Pass the same ``used_stems`` set across one recording of many logs: a repeated
+    episode then gets ``--<first 8 hex digits of its log digest>`` added to its name.
+    """
+    converted = _convert(log_path, out_dir, author=author, used_stems=used_stems)
     return RecordedEpisode(
         source=log_path,
         trace=converted.trace,
@@ -533,10 +548,11 @@ def record_agentdojo_bundle(
     steps: list[dict[str, Any]] = []
     source_digests: list[str] = []
     runs: list[_Run] = []
+    used_stems: set[str] = set()
     with TemporaryDirectory(prefix=".sova-record-", dir=destination.parent) as staging:
         staging_root = Path(staging)
         for index, log_path in enumerate(logs):
-            converted = _convert(log_path, staging_root, author=author)
+            converted = _convert(log_path, staging_root, author=author, used_stems=used_stems)
             run = converted.run
             runs.append(run)
             nested[converted.capsule.name] = converted.capsule
