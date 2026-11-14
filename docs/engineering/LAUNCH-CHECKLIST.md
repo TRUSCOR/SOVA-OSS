@@ -93,31 +93,31 @@ row below buys one of those four.
 *Nobody can use SOVA today. There is no install path. Nothing else on this list
 matters until this is true.*
 
-- [ ] **1.1** Confirm the `sova-oss` name is free on PyPI — **ME** — lookup recorded
-- [ ] **1.2** Create the PyPI project, enable Trusted Publishing (OIDC) for this repo — **YOU** — publisher configured, no long-lived token anywhere
-- [ ] **1.3** Add a tag-gated publish workflow with manual approval — **ME** — workflow refuses to run without explicit dispatch
-- [ ] **1.4** Dry-run publish to TestPyPI — **WAITING** — TestPyPI artifact URL
-- [ ] **1.5** Clean-environment install on Windows — **ME** — `sova --version` + `sova doctor` output
-- [ ] **1.6** Clean-environment install on Linux (WSL Ubuntu) — **ME** — same, on Linux
+- [x] **1.1** Confirm the `sova-oss` name is free on PyPI — **ME** — lookup recorded *(2026-11-15: `sova-oss` 404 before release; `sova` is an unrelated SLAM package)*
+- [x] **1.2** Create the PyPI project, enable Trusted Publishing (OIDC) for this repo — **YOU** — publisher configured, no long-lived token anywhere *(2026-11-15: pending publisher TRUSCOR/SOVA-OSS, publish.yml, environment pypi; project created by the first upload)*
+- [x] **1.3** Add a tag-gated publish workflow with manual approval — **ME** — workflow refuses to run without explicit dispatch *(`.github/workflows/publish.yml`: workflow_dispatch only, tag must equal the package version)*
+- [ ] **1.4** Dry-run publish to TestPyPI — **WAITING** — TestPyPI artifact URL *(build half passed in run 43637977146; no TestPyPI publisher was configured, so 0.1.0 went to PyPI directly)*
+- [x] **1.5** Clean-environment install on Windows — **ME** — `sova --version` + `sova doctor` output *(2026-11-15: `pip install sova-oss` from PyPI into a fresh CPython 3.12 venv, `sova 0.1.0`, `sova doctor` status pass, `sova verify` on a released finding: verified)*
+- [ ] **1.6** Clean-environment install on Linux (WSL Ubuntu) — **ME** — same, on Linux *(partial: publish.yml installed the built wheel in a clean Ubuntu venv and ran `sova --version`, run 43640273688; `sova doctor` on Linux not yet recorded)*
 - [ ] **1.7** Clean-environment install on macOS — **OTHER** — same, from a Mac we don't have
-- [ ] **1.8** `docs/guides/installation.md` matches observed behavior exactly — **ME** — doc diff
-- [ ] **1.9** README install block matches — **ME** — doc diff
+- [x] **1.8** `docs/guides/installation.md` matches observed behavior exactly — **ME** — doc diff *(release commit 2484528)*
+- [x] **1.9** README install block matches — **ME** — doc diff *(release commit 2484528)*
 
 ---
 
 ## Phase 2 — Declare what is stable
 
-*People cannot build on a surface whose stability is undeclared. Your version string
-currently says `0.1.0a0` / "Pre-Alpha", which tells everyone not to bother.*
+*People cannot build on a surface whose stability is undeclared. Done in 0.1.0: see
+`docs/governance/api-stability.md`.*
 
-- [ ] **2.1** Decide the frozen surface — **YOU** — recommended: freeze `.sova`, `.sova-trace`, the 61 schemas and the CLI leaves; leave the Python API experimental
-- [ ] **2.2** Write `docs/governance/api-stability.md` — **WAITING** — doc exists, linked from README
-- [ ] **2.3** Enumerate the frozen surface explicitly — **WAITING** — an actual list, not a description
-- [ ] **2.4** Enumerate the experimental surface explicitly — **WAITING** — actual list
-- [ ] **2.5** Deprecation policy and notice period, consistent with ADR-0002 — **WAITING** — doc section
-- [ ] **2.6** Align `pyproject.toml` version + Development Status with the statement — **WAITING** — metadata stops contradicting the contract
-- [ ] **2.7** Extend `test_cli_surface_audit.py` so a frozen CLI leaf cannot vanish silently — **WAITING** — test fails when a frozen leaf is removed
-- [ ] **2.8** Update the README status block — **WAITING** — doc diff
+- [x] **2.1** Decide the frozen surface — **YOU** — recommended: freeze `.sova`, `.sova-trace`, the 61 schemas and the CLI leaves; leave the Python API experimental *(founder, 2026-11-15: release the format with the paper. Frozen: `.sova`, `.sova-trace` and `sova.calibration` 0.1.0; stable within 0.1.x: the nine core CLI leaves; the other schemas, leaves and the Python API stay experimental)*
+- [x] **2.2** Write `docs/governance/api-stability.md` — **WAITING** — doc exists, linked from README *(release commit 2484528)*
+- [x] **2.3** Enumerate the frozen surface explicitly — **WAITING** — an actual list, not a description *(release commit 2484528)*
+- [x] **2.4** Enumerate the experimental surface explicitly — **WAITING** — actual list *(release commit 2484528)*
+- [x] **2.5** Deprecation policy and notice period, consistent with ADR-0002 — **WAITING** — doc section *(release commit 2484528)*
+- [x] **2.6** Align `pyproject.toml` version + Development Status with the statement — **WAITING** — metadata stops contradicting the contract *(0.1.0, Development Status 4 - Beta; release commit 2484528)*
+- [x] **2.7** Extend `test_cli_surface_audit.py` so a frozen CLI leaf cannot vanish silently — **WAITING** — test fails when a frozen leaf is removed *(`test_stable_cli_leaves_stay_registered` in tests/unit/test_front_door.py; release commit 2484528)*
+- [x] **2.8** Update the README status block — **WAITING** — doc diff *(release commit 2484528)*
 
 ---
 
