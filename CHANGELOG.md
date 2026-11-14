@@ -27,6 +27,14 @@ have independent version ledgers.
 
 ### Added
 
+- Added `sova rerun` and `sova matrix`: run a recorded AgentDojo finding again on
+  a chosen model (OpenAI-compatible Chat Completions or Responses API, or
+  Anthropic), report attacks among judged runs with a Wilson 95% interval and the
+  runs that could not be judged, and decide reproduction against the recorded run
+  with six explicit states. `matrix` runs findings x models x trials, classifies
+  findings across a model upgrade, and resumes from earlier runs. Model calls need
+  `--authorize`; keys come only from named environment variables. Needs the new
+  optional `sova-oss[agentdojo]` extra (`agentdojo==0.1.35`).
 - Bound the exact README, documentation, demo, website, paper, Registry, and
   release-note claim surfaces into the P6 release candidate and launch dossier.
   A canonical snapshot with any held or unreviewed surface now blocks publication.

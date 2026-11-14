@@ -47,6 +47,20 @@ an enforced Nmap legal hold. Every runtime executable remains operator-supplied
 and SHA-256 bound. The SOVA authority kernel, executor contract, trace, parser,
 and later oracle/reproduction stages remain the controlling architecture.
 
+## AgentDojo optional runtime dependency — 2026-11-14
+
+`sova rerun` and `sova matrix` run recorded AgentDojo findings again on a chosen
+model. They use AgentDojo itself, not a re-implementation, so that a fresh run
+uses the same suites, injection vectors, attack templates, pipeline settings, and
+security and utility checks as the run that was recorded.
+
+| Project | Decision | Boundary |
+|---|---|---|
+| [AgentDojo](https://github.com/ethz-spylab/agentdojo) 0.1.35 | **OPTIONAL RUNTIME DEPENDENCY** (`sova-oss[agentdojo]`, exact pin `agentdojo==0.1.35`) | MIT licence; installed by the user, not vendored. Imported lazily only when a run starts; inspecting or verifying a capsule never imports it. The runner refuses any other installed version because it relies on 0.1.35's pipeline configuration and message-conversion helpers. Only AgentDojo's simulated environments are run; every model call goes through SOVA's own paced, retried, recorded provider clients, and keys come only from named environment variables. AgentDojo's security verdict is recorded as the benchmark's oracle and used as the default judge, not as proof that an attack happened: its checks can score a warning that names the attacker's target as an attack. The 0.1.35 JSON tool-output option cannot serialize dates; SOVA substitutes an ISO-8601 date writer and keeps the spotlighting delimiters. |
+
+The OpenAI and Anthropic Python SDKs (Apache-2.0) arrive with the extra as
+AgentDojo dependencies and are imported only to build those provider clients.
+
 ## Autonomous pentest and cyber-agent frameworks
 
 | Project | Decision | What is useful | Why not wholesale copy |

@@ -7,6 +7,8 @@ automation workflow and are not vendored into this repository.
 | Project | Role | Licence | Source |
 |---|---|---|---|
 | `hatchling` | PEP 517 build backend | MIT | [PyPA Hatch](https://github.com/pypa/hatch) |
+| `agentdojo` 0.1.35 | Optional `sova-oss[agentdojo]` extra: fresh runs of recorded AgentDojo findings (`sova rerun`, `sova matrix`) | MIT | [ethz-spylab/agentdojo](https://github.com/ethz-spylab/agentdojo) |
+| `openai` / `anthropic` | Provider SDKs installed with the `agentdojo` extra; used only by `sova rerun` and `sova matrix` | Apache-2.0 | [openai/openai-python](https://github.com/openai/openai-python) / [anthropics/anthropic-sdk-python](https://github.com/anthropics/anthropic-sdk-python) |
 | `cryptography` | Optional Ed25519 signing and verification; development tests | Apache-2.0 or BSD-3-Clause | [pyca/cryptography](https://github.com/pyca/cryptography) |
 | `hypothesis` | Development-only property-based testing | MPL-2.0 | [HypothesisWorks/hypothesis](https://github.com/HypothesisWorks/hypothesis) |
 | `jsonschema` | JSON Schema 2020-12 runtime validation | MIT | [python-jsonschema/jsonschema](https://github.com/python-jsonschema/jsonschema) |

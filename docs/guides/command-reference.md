@@ -11,6 +11,7 @@ human text or HTML artifact is the command's purpose.
 | Setup | `init`, `doctor`, `data delete` |
 | Capsule | `inspect`, `validate`, `lint`, `verify`, `migrate`, `compat`, `format`, `hash`, `template`, `pack` |
 | Trace/replay | `playback`, one-step `replay FINDING.sova`, `replay open`, `replay modes`, `replay timeline`, `replay capsule`, `replay serve`, `replay study`, `replay clip`, `query`, `compare`, `export`, `recover-trace` |
+| Re-run findings | `rerun`, `matrix` |
 | First value | `map`, `check`, `demo`, `safety backends`, `safety attest-docker`, `safety attest-gvisor`, `executors receipts` |
 | Search and analysis | `hunt owned-web-fixture`, `hunt browser`, `hunt agent-browser`, `hunt adaptive-browser`, `hunt-demo`, `forensics reconstruct`, `forensics attribute`, `forensics browser-counterfactual`, `forensics benchmark`, `forensics blind-fixture`, `forensics blind-run`, `forensics blind-score`, `forensics blind-keygen`, `forensics blind-sign-key`, `evidence`, `case build`, `adjudicate`, `compose` |
 | Methodology | `methodology library-export`, `methodology playbook-validate`, `methodology policy-create`, `methodology compile`, `methodology observations-template`, `methodology replan`, `methodology keygen`, `methodology contribute` |
@@ -22,6 +23,18 @@ human text or HTML artifact is the command's purpose.
 | Release and compatibility | `release sbom`, `release cargo-sbom`, `release checksums`, `release verify-checksums`, `release keygen`, `release sign-evidence`, `release assemble-evidence`, `release dossier`, `conformance export`, `conformance verify` |
 | Final-mile acceptance | `acceptance run`, `acceptance evaluate`, `acceptance template` |
 | Authorized targets | `target profile-create`, `target profile-validate`, `target intake`, `target browser-kit`, `target template`, `target validate`, `target plan`, `target fixture`, `target challenge`, `target prove`, `detonate owned-web-fixture`, `detonate owned-software-fixture`, `detonate browser`, `detonate software`, `hunt owned-web-fixture`, `hunt browser`, `hunt agent-browser`, `hunt adaptive-browser` |
+
+`sova rerun FINDING.sova --model M --authorize` runs a recorded AgentDojo finding
+again on model `M` in AgentDojo's simulated environments and reports attacks among
+judged runs with a Wilson 95% interval, the runs that could not be judged and why,
+and whether the recorded outcome was reproduced. A different model, defense,
+benchmark version, or attack makes the comparison "not comparable" while the
+outcome rate stays the answer. `sova matrix` runs findings x models x trials and,
+with `--baseline`/`--candidate`, classifies each finding across a model upgrade.
+Keys come only from the environment variables named on the command line. Without
+`--authorize` neither command calls a model; both reuse runs already in `--out`.
+Needs the optional `sova-oss[agentdojo]` extra. See the
+[re-run guide](rerun-and-matrix.md).
 
 `release dossier` requires the exact canonical `sova.public-claims-snapshot`
 between the claims-register and destination arguments. The snapshot covers the
