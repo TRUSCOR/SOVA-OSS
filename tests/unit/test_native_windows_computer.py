@@ -75,6 +75,36 @@ def test_native_window_map_is_explicit_bounded_and_immutable() -> None:
         native_window_targets_from_mapping(malformed)
 
 
+def _map_variant(**changes: object) -> dict[str, object]:
+    value = _map()
+    value.update(changes)
+    return value
+
+
+@pytest.mark.parametrize(
+    ("value", "message"),
+    [
+        ([], "must contain artifactType"),
+        ({**_map(), "unreviewed": True}, "must contain artifactType"),
+        (_map_variant(artifactType="sova.other-map"), "target count is invalid"),
+        (_map_variant(targets=[]), "target count is invalid"),
+        (_map_variant(targets=["arm-button"]), "must contain reference"),
+        (
+            _map_variant(
+                targets=[
+                    {"reference": "same", "actions": ["computer.click"], "x": 1, "y": 1},
+                    {"reference": "same", "actions": ["computer.click"], "x": 2, "y": 2},
+                ]
+            ),
+            "must be unique",
+        ),
+    ],
+)
+def test_native_window_map_rejects_malformed_shapes(value: object, message: str) -> None:
+    with pytest.raises(FormatError, match=message):
+        native_window_targets_from_mapping(value)
+
+
 def test_native_executor_sends_only_bound_click_and_type_messages(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,

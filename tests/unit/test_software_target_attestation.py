@@ -3,15 +3,18 @@
 
 from __future__ import annotations
 
+import ctypes
 import os
 import sys
 import time
 from dataclasses import replace
 from pathlib import Path
-from typing import Any
+from types import SimpleNamespace
+from typing import TYPE_CHECKING, Any
 
 import pytest
 
+from sova.formats import canonical_json_bytes, sha256_digest
 from sova.formats.errors import FormatError
 from sova.runtime import software_target
 from sova.runtime.software_target import (
@@ -20,9 +23,14 @@ from sova.runtime.software_target import (
     wait_for_owned_window,
 )
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+_PROCESS_IDENTITY_UNAVAILABLE = os.name != "nt" and not Path("/proc").is_dir()
+
 
 @pytest.mark.skipif(
-    os.name != "nt" and not Path("/proc").is_dir(),
+    _PROCESS_IDENTITY_UNAVAILABLE,
     reason="process identity attestation is unavailable on this platform",
 )
 def test_current_process_attestation_measures_and_revalidates_generation() -> None:
@@ -37,7 +45,7 @@ def test_current_process_attestation_measures_and_revalidates_generation() -> No
 
 
 @pytest.mark.skipif(
-    os.name != "nt" and not Path("/proc").is_dir(),
+    _PROCESS_IDENTITY_UNAVAILABLE,
     reason="process identity attestation is unavailable on this platform",
 )
 def test_running_process_rejects_substituted_executable() -> None:
@@ -139,6 +147,12 @@ def test_attestation_detects_stale_generation_and_byte_substitution(
         return ("sha256:" + ("a" if calls == 1 else "b") * 64, 5)
 
     monkeypatch.setattr(software_target, "_file_digest", digest)
+    if _PROCESS_IDENTITY_UNAVAILABLE:
+        # Without Windows process APIs or procfs the measurement fails closed
+        # before any executable bytes could be compared.
+        with pytest.raises(FormatError, match="unavailable on this platform"):
+            software_target.attest_software_target(executable, pid=10)
+        return
     if os.name == "nt":
         monkeypatch.setattr(
             software_target, "_windows_process_identity", lambda _pid: (executable, 123)
@@ -155,3 +169,138 @@ def test_observed_process_executable_rejects_invalid_pid() -> None:
     for pid in (0, -1, True):
         with pytest.raises(FormatError, match="positive integer"):
             observed_process_executable(pid)
+
+
+class _ForeignFunction:
+    """Stand-in for a ctypes foreign function that accepts argtypes/restype."""
+
+    def __init__(self, behaviour: Callable[..., object]) -> None:
+        self.behaviour = behaviour
+        self.calls = 0
+
+    def __call__(self, *args: object) -> object:
+        self.calls += 1
+        return self.behaviour(*args)
+
+
+def _install_dll(monkeypatch: pytest.MonkeyPatch, library: object) -> None:
+    # The Win32 bindings are driven through fakes so their fail-closed branches
+    # run on every platform; ctypes.WinDLL exists only on Windows.
+    monkeypatch.setattr(ctypes, "WinDLL", lambda *_args, **_kwargs: library, raising=False)
+
+
+def _kernel32(
+    image: str, *, handle: int = 77, image_ok: bool = True, times_ok: bool = True
+) -> SimpleNamespace:
+    def query(_handle: object, _flags: object, buffer: Any, _size: object) -> int:
+        buffer.value = image
+        return int(image_ok)
+
+    def times(_handle: object, creation: Any, *_rest: object) -> int:
+        creation._obj.dwHighDateTime = 1
+        creation._obj.dwLowDateTime = 2
+        return int(times_ok)
+
+    return SimpleNamespace(
+        OpenProcess=_ForeignFunction(lambda *_args: handle),
+        QueryFullProcessImageNameW=_ForeignFunction(query),
+        GetProcessTimes=_ForeignFunction(times),
+        CloseHandle=_ForeignFunction(lambda _handle: 1),
+    )
+
+
+def test_windows_process_identity_binding_measures_image_and_generation(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    image = tmp_path / "owned.exe"
+    image.write_bytes(b"owned")
+    absent = _kernel32(str(image), handle=0)
+    _install_dll(monkeypatch, absent)
+    with pytest.raises(FormatError, match="absent or cannot be identity-queried"):
+        software_target._windows_process_identity(10)
+    assert absent.CloseHandle.calls == 0
+
+    for kernel, message in (
+        (_kernel32(str(image), image_ok=False), "executable identity could not be queried"),
+        (_kernel32(str(image), times_ok=False), "generation could not be queried"),
+    ):
+        _install_dll(monkeypatch, kernel)
+        with pytest.raises(FormatError, match=message):
+            software_target._windows_process_identity(10)
+        assert kernel.CloseHandle.calls == 1
+
+    measured = _kernel32(str(image))
+    _install_dll(monkeypatch, measured)
+    assert software_target._windows_process_identity(10) == (image.resolve(), (1 << 32) | 2)
+    assert measured.CloseHandle.calls == 1
+
+
+def _user32(windows: dict[int, tuple[int, bool, str]], *, live: bool = True) -> SimpleNamespace:
+    def owner(window: int, pid: Any) -> int:
+        pid._obj.value = windows[window][0]
+        return 1
+
+    def text(window: int, buffer: Any, _length: object) -> int:
+        buffer.value = windows[window][2]
+        return len(buffer.value)
+
+    return SimpleNamespace(
+        IsWindow=_ForeignFunction(lambda _window: int(live)),
+        IsWindowVisible=_ForeignFunction(lambda window: int(windows[window][1])),
+        GetWindowThreadProcessId=_ForeignFunction(owner),
+        GetWindowTextLengthW=_ForeignFunction(lambda window: len(windows[window][2])),
+        GetWindowTextW=_ForeignFunction(text),
+    )
+
+
+def test_windows_window_identity_binding_requires_live_owned_window(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    windows = {5: (10, True, "Owned App"), 6: (11, True, "Other App")}
+    _install_dll(monkeypatch, _user32(windows, live=False))
+    with pytest.raises(FormatError, match="not live"):
+        software_target._windows_window_identity(5, 10)
+
+    _install_dll(monkeypatch, _user32(windows))
+    with pytest.raises(FormatError, match="another process generation"):
+        software_target._windows_window_identity(6, 10)
+    assert software_target._windows_window_identity(5, 10) == (
+        sha256_digest(canonical_json_bytes({"pid": 10, "windowId": 5})),
+        sha256_digest(b"Owned App"),
+    )
+
+
+def test_windows_top_level_window_binding_filters_owner_visibility_and_title(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    windows = {
+        21: (99, True, "Owned App"),
+        22: (10, False, "Owned App"),
+        23: (10, True, "Owned App - main"),
+        24: (10, True, "Settings"),
+    }
+    user32 = _user32(windows)
+    outcome = {"completed": 1, "error": 0}
+
+    def enumerate_windows(callback: Callable[[int, int], object], _parameter: object) -> int:
+        for window in windows:
+            callback(window, 0)
+        return outcome["completed"]
+
+    user32.EnumWindows = _ForeignFunction(enumerate_windows)
+    _install_dll(monkeypatch, user32)
+    if not hasattr(ctypes, "WINFUNCTYPE"):
+        monkeypatch.setattr(ctypes, "WINFUNCTYPE", ctypes.CFUNCTYPE, raising=False)
+    monkeypatch.setattr(ctypes, "set_last_error", lambda _value: 0, raising=False)
+    monkeypatch.setattr(ctypes, "get_last_error", lambda: outcome["error"], raising=False)
+
+    assert software_target._windows_owned_top_level_windows(10, None) == (23, 24)
+    assert software_target._windows_owned_top_level_windows(10, "OWNED app") == (23,)
+    # A zero return with an unchanged last error is a transient empty enumeration.
+    outcome["completed"] = 0
+    assert software_target._windows_owned_top_level_windows(10, "settings") == (24,)
+    outcome["error"] = 5
+    with pytest.raises(FormatError, match="could not be enumerated") as captured:
+        software_target._windows_owned_top_level_windows(10, None)
+    assert captured.value.issue.details == {"windowsError": 5}
