@@ -68,6 +68,31 @@
 > GPT-4o re-run study whose headline numbers `sova compare` recomputes. Start
 > with [the findings](https://github.com/TRUSCOR/research/tree/main/artifacts/pf-v1.1/findings).
 
+## Start here: three questions about an attack on an AI agent
+
+A `.sova` file is a sealed record of one attack on an AI agent: what the agent was
+asked, the planted instruction, every step it took, and whether the attack worked.
+Anyone can check it offline, and anyone with a model key can run the attack again.
+
+| Question | Command | What you get |
+|---|---|---|
+| Did the attack really work? | `sova audit runs/` | Each benchmark "success" checked against the agent's actual tool calls: a real attacker action, a warning scored as an attack, an attacker action scored as no attack, or a crash given a verdict |
+| Does it still work on this model today, and how often? | `sova rerun finding.sova --model M --trials 10 --authorize` | "attack worked 7 of 10 runs (Wilson 95%: 40%-89%)", plus whether this counts as a reproduction of the recorded run or a different setup |
+| Which known attacks work on the model I am moving to? | `sova matrix findings/ --baseline OLD --candidate NEW --trials 3 --authorize` | Per finding: still works, stopped working, newly works, or can't tell |
+| Can I prove it to someone who does not trust me? | `sova verify finding.sova`, `sova show`, `sova compare` | Offline integrity check, the step-by-step timeline, and outcome comparison, without running anything |
+| How do I make one? | `sova record agentdojo run-log.json --out findings/` | A `.sova-trace` and `.sova` capsule from an AgentDojo run log |
+
+```bash
+pip install "git+https://github.com/TRUSCOR/SOVA-OSS"                       # verify, show, compare, audit, record
+pip install "sova-oss[agentdojo] @ git+https://github.com/TRUSCOR/SOVA-OSS"  # adds rerun and matrix
+```
+
+Opening, verifying, showing, comparing and auditing never call a model. `rerun` and
+`matrix` call one only with `--authorize`, read keys only from environment variables
+you name, and run only AgentDojo's simulated bank, inbox, travel and chat apps today.
+Guides: [audit and record](docs/guides/audit-and-record.md) ·
+[re-run and upgrade checks](docs/guides/rerun-and-matrix.md).
+
 ## Implemented foundation, mapping, runtime, capsules, traces, and ecosystem boundaries
 
 The implemented Topic 02–27 engineering foundation is intentionally
