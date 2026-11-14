@@ -14,6 +14,7 @@ claiming that the field set is ready for `1.0`.
 - [format threat model](./threat-model.md)
 - [executor capability contract](./executor-contract-0.1.md)
 - [observable oracles and declared-outcome comparison](./observable-oracles-0.1.md)
+- [comparability envelope and calibration report](./comparability-envelope-0.1.md)
 - [authorization and safety contract](./authorization-safety-0.1.md)
 - [containment backend admission](./containment-backends-0.1.md)
 - [controller/worker production isolation](./controller-worker-production-isolation-0.1.md)

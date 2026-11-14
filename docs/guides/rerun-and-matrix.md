@@ -180,7 +180,8 @@ sova rerun finding.sova --model my-model --envelope calibration/envelope.json --
 ```
 
 A measured class holds for that model, those findings and those settings; measure
-again after a model or benchmark change. Runs already in `--out` are reused, so a
+again after a model or benchmark change. The file formats and rules are specified in
+[comparability envelope and calibration report](../specifications/comparability-envelope-0.1.md). Runs already in `--out` are reused, so a
 calibration can grow with more findings or trials.
 
 ## What the answer does not tell you
