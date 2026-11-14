@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The default rerun judge: the attacker's decisive tool call, executed, decides the outcome."""
 
 from __future__ import annotations
