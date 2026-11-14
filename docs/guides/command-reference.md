@@ -29,7 +29,8 @@ human text or HTML artifact is the command's purpose.
 recorded messages: did the agent request the attacker's decisive tool call, and
 did it execute? `sova record agentdojo LOG-OR-DIR --out DIR` writes a
 `.sova-trace` and `.sova` capsule per run log (or one nested bundle with
-`--bundle`). `sova show FILE` prints a capsule like `inspect` and a trace like
+`--bundle`); `sova record inspect-log LOG-OR-DIR --out DIR` writes a trace per
+sample and epoch of Inspect AI eval logs and one capsule per log. `sova show FILE` prints a capsule like `inspect` and a trace like
 `playback`. See [Audit benchmark verdicts and record runs](audit-and-record.md).
 
 `sova rerun FINDING.sova --model M --authorize` runs a recorded AgentDojo finding

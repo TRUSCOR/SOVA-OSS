@@ -13,6 +13,7 @@ from sova.interoperability.agentdojo import (
     record_agentdojo_log,
 )
 from sova.interoperability.inspect_ai import import_inspect_samples
+from sova.interoperability.inspect_log import find_inspect_logs, record_inspect_log
 from sova.interoperability.trace_attestation import import_trace_records
 
 if TYPE_CHECKING:
@@ -74,6 +75,43 @@ def _emit(document: dict[str, Any], destination: Path | None, stdout: TextIO) ->
     return 0
 
 
+def record_inspect_logs(
+    source: Path,
+    out_dir: Path,
+    *,
+    author: str,
+    stdout: TextIO,
+    stderr: TextIO,
+) -> int:
+    """Record one Inspect AI eval log, or every log under a directory, as SOVA artifacts.
+
+    Returns 0 when every log was recorded, 1 when some could not be (each is named on
+    ``stderr`` with its reason), and raises when none was found.
+    """
+    if not source.exists():
+        raise FormatError("SOVA-RECORD-PATH", "record source is neither a file nor a directory")
+    logs = find_inspect_logs(source)
+    if not logs:
+        raise FormatError("SOVA-RECORD-NO-LOGS", "no Inspect AI eval logs found")
+    failed = 0
+    samples = 0
+    for log in logs:
+        target = out_dir if source.is_file() else out_dir / log.parent.relative_to(source)
+        try:
+            recorded = record_inspect_log(log, target, author=author)
+        except FormatError as error:
+            failed += 1
+            stderr.write(f"{log.name}: {error.issue.code} {error}\n")
+            continue
+        samples += recorded.samples
+        stdout.write(f"{recorded.capsule_digest}  {recorded.capsule}\n")
+    stdout.write(
+        f"recorded {samples} sample run(s) from {len(logs) - failed} Inspect AI log(s) into "
+        f"{out_dir}; {failed} log(s) could not be read\n"
+    )
+    return 1 if failed else 0
+
+
 def record_inspect(
     source: Path,
     *,
@@ -104,4 +142,4 @@ def record_trace_attestation(
     return _emit(document, destination, stdout)
 
 
-__all__ = ["record_agentdojo", "record_inspect", "record_trace_attestation"]
+__all__ = ["record_agentdojo", "record_inspect", "record_inspect_logs", "record_trace_attestation"]

@@ -155,6 +155,7 @@ from sova.intake import (
 from sova.interoperability.record import (
     record_agentdojo,
     record_inspect,
+    record_inspect_logs,
     record_trace_attestation,
 )
 from sova.live import (
@@ -392,6 +393,21 @@ def build_parser() -> argparse.ArgumentParser:  # noqa: PLR0915
     )
     record_agentdojo_parser.add_argument("--name", help="bundle file name (default: DIR-bundle)")
     record_agentdojo_parser.set_defaults(handler=_record_agentdojo)
+    record_inspect_log_parser = record_commands.add_parser(
+        "inspect-log",
+        help="write a .sova-trace per sample and a .sova capsule per Inspect AI eval log",
+        description=(
+            "Convert Inspect AI eval logs (.json, or .eval archives) into one .sova-trace per "
+            "sample and epoch, sealed in one .sova capsule per log. Reads the log as data; "
+            "imports no Inspect code and runs nothing."
+        ),
+    )
+    record_inspect_log_parser.add_argument(
+        "source", type=_path, help="one eval log, or a directory searched recursively"
+    )
+    record_inspect_log_parser.add_argument("--out", type=_path, required=True)
+    record_inspect_log_parser.add_argument("--author", default="Unknown author")
+    record_inspect_log_parser.set_defaults(handler=_record_inspect_log)
     for record_name, record_help, record_handler in (
         (
             "inspect",
@@ -3248,6 +3264,12 @@ def _record_agentdojo(args: argparse.Namespace) -> int:
         bundle=args.bundle,
         bundle_name=args.name,
         stdout=sys.stdout,
+    )
+
+
+def _record_inspect_log(args: argparse.Namespace) -> int:
+    return record_inspect_logs(
+        args.source, args.out, author=args.author, stdout=sys.stdout, stderr=sys.stderr
     )
 
 

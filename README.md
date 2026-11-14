@@ -81,7 +81,7 @@ Anyone can check it offline, and anyone with a model key can run the attack agai
 | Which known attacks work on the model I am moving to? | `sova matrix findings/ --baseline OLD --candidate NEW --trials 3 --authorize` | Per finding: still works, stopped working, newly works, or can't tell; add `--fail-on still-works,newly-works` to fail a CI job |
 | Which setup changes matter on my model? | `sova calibrate findings/ --model M --alternative OTHER --authorize` | Per change (tool-output format, system prompt, model, defenses): the drop in recurrence with a 95% interval, classed material, non-material or undetermined, and an envelope file for `sova rerun --envelope` |
 | Can I prove it to someone who does not trust me? | `sova verify finding.sova`, `sova show`, `sova compare` | Offline integrity check, the step-by-step timeline, and outcome comparison, without running anything |
-| How do I make one? | `sova record agentdojo run-log.json --out findings/` | A `.sova-trace` and `.sova` capsule from an AgentDojo run log |
+| How do I make one? | `sova record agentdojo run-log.json --out findings/` or `sova record inspect-log logs/ --out findings/` | A `.sova-trace` and `.sova` capsule from an AgentDojo run log, or a trace per sample and a capsule per log from Inspect AI eval logs |
 
 ```bash
 pip install "git+https://github.com/TRUSCOR/SOVA-OSS"                       # verify, show, compare, audit, record

@@ -160,6 +160,45 @@ The trace records AgentDojo's verdict as the declared outcome; it does not
 re-check it. The capsule records `authorization: not-required` because the
 conversion executes nothing.
 
+## Record an Inspect AI eval log as `.sova`
+
+```text
+sova record inspect-log logs/2026-11-14T13-49-46_task.json --out evidence/
+sova record inspect-log logs/ --out evidence/ --author "Your Name"
+```
+
+Each sample and epoch of an Inspect AI eval log becomes
+`<task>-<sample id>-epoch<n>.sova-trace`, and the traces of one log are sealed in
+one `<log name>.sova` capsule. A folder is searched recursively and its layout is
+kept under `--out`; a log that cannot be read is named on standard error, the
+others are still recorded, and the exit status is 1. Existing files are never
+overwritten. The log is read as data: no Inspect code is imported and no task,
+solver, scorer or sandbox runs.
+
+Both log formats are read. A `.eval` archive written with Zstandard compression,
+Inspect's default, needs Python 3.14; on earlier versions convert it first with
+`inspect log convert --to json --output-dir DIR LOG` and record the `.json`.
+
+| Event | Payload |
+|---|---|
+| `artifact.imported` | log file name, its SHA-256 digest, and the archive entry |
+| `run.started` | `harness: "Inspect AI"`, Inspect version, task, task/eval/run ids, dataset, sample id, epoch, model |
+| `prompt.system`, `prompt.user` | `text` |
+| `model.response` | `text`, `toolCalls`, and `omittedBlocks` counting blocks that are not text |
+| `tool.requested` | `function`, `args`, `callId` |
+| `tool.result` | `function`, `callId`, `output`, `error` |
+| `environment.model.returned` | the model name the sample's output reports |
+| `error.reported` | only when the sample records an error |
+| `oracle.completed` | one per scorer: `oracle: "inspect.scorer:<name>"`, `value`, `answer`, `explanation` |
+| `run.completed` | every scorer value, the limit that stopped the sample if any, and `error` |
+
+Content stored as an Inspect attachment is resolved into the trace. Reasoning
+blocks are counted in `omittedBlocks` and never copied. A scorer's value is that
+scorer's claim, recorded as given; `sova verify`, `sova show` and `sova compare`
+work on the result, and `sova audit` and `sova rerun` remain AgentDojo-specific.
+Inspect's own event log, the sample store, token usage and sandbox details are
+not carried, and the capsule's limitations say so.
+
 ## Other importers
 
 `sova record inspect SAMPLES.jsonl --license SPDX --source-url URL` imports an
