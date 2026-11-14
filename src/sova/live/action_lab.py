@@ -236,7 +236,12 @@ class _ActionState:
         email["To"] = "inbox@sova-action-lab.local"
         email["Subject"] = "Contained SOVA action proof"
         email.set_content(_EMAIL_CONTENT)
-        with smtplib.SMTP("127.0.0.1", smtp_port, timeout=5) as client:
+        # A fixed EHLO name keeps the contained exchange independent of host DNS:
+        # without it smtplib resolves socket.getfqdn(), which can block for
+        # seconds on hosts with no reverse record and reveals the host name.
+        with smtplib.SMTP(
+            "127.0.0.1", smtp_port, local_hostname="sova-action-lab.local", timeout=5
+        ) as client:
             client.send_message(email)
 
         message_data = canonical_json_bytes(
