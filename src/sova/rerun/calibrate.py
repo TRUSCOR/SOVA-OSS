@@ -272,9 +272,15 @@ def measure_drop(
     if not draws:
         return base_rate, changed_rate, drop, None, used
     draws.sort()
-    low = draws[max(0, int(0.025 * len(draws)))]
-    high = draws[min(len(draws) - 1, int(0.975 * len(draws)))]
-    return base_rate, changed_rate, drop, (low, high), used
+    return base_rate, changed_rate, drop, (percentile(draws, 2.5), percentile(draws, 97.5)), used
+
+
+def percentile(ordered: Sequence[float], q: float) -> float:
+    """Return the q-th percentile of sorted values by linear interpolation between ranks."""
+    position = (len(ordered) - 1) * q / 100
+    lower = int(position)
+    upper = min(lower + 1, len(ordered) - 1)
+    return ordered[lower] + (ordered[upper] - ordered[lower]) * (position - lower)
 
 
 def classify(interval: tuple[float, float] | None, threshold: float) -> str:
@@ -464,5 +470,6 @@ __all__ = [
     "classify",
     "envelope_from",
     "measure_drop",
+    "percentile",
     "run_calibration",
 ]

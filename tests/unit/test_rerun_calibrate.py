@@ -18,6 +18,7 @@ from sova.rerun.calibrate import (
     classify,
     envelope_from,
     measure_drop,
+    percentile,
     run_calibration,
 )
 from sova.rerun.decision import ContextMode
@@ -82,6 +83,13 @@ def test_measure_drop_and_classify() -> None:
     # The interval is reproducible from the seed.
     again = measure_drop([1.0, 0.0, 1.0, 0.0], [0.0, 0.0, 1.0, 1.0], resamples=500, seed=3)
     assert again == mixed
+
+
+def test_percentile_interpolates_between_ranks() -> None:
+    assert percentile([0.0, 1.0], 50) == 0.5
+    assert percentile([0.0, 1.0, 2.0, 3.0, 4.0], 2.5) == 0.1
+    assert percentile([0.0, 1.0, 2.0, 3.0, 4.0], 97.5) == 3.9
+    assert percentile([7.0], 97.5) == 7.0
 
 
 def test_measure_drop_with_no_usable_resample() -> None:
