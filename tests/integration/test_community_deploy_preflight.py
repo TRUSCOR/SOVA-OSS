@@ -24,13 +24,19 @@ def test_installed_docker_accepts_preflighted_compose_config(
     docker = shutil.which("docker")
     if docker is None:
         pytest.skip("Docker CLI is not installed")
-    available = subprocess.run(
-        [docker, "compose", "version"],
-        check=False,
-        capture_output=True,
-        text=True,
-        timeout=30,
-    )
+    # Only the exit status matters. Pipes are not captured because a helper the
+    # CLI leaves running can inherit and hold them open past the CLI's own exit.
+    try:
+        available = subprocess.run(
+            [docker, "compose", "version"],
+            check=False,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            timeout=30,
+        )
+    except subprocess.TimeoutExpired:
+        pytest.skip("Docker Compose plugin did not answer a version probe")
     if available.returncode != 0:
         pytest.skip("Docker Compose plugin is not available")
 
