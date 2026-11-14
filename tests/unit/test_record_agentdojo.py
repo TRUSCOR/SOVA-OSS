@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Any
 
 import pytest
 
+from sova.audit.agentdojo import collect_inputs
 from sova.cli import main
 from sova.formats import PackageReader, strict_json_loads
 from sova.formats.errors import FormatError
@@ -21,6 +22,7 @@ from sova.interoperability.agentdojo import (
     text_of,
 )
 from sova.interoperability.record import record_inspect
+from sova.replay.verification import verify_artifact
 from sova.trace import TraceReader
 
 if TYPE_CHECKING:
@@ -354,3 +356,22 @@ def test_record_inspect_writes_text_when_stdout_has_no_buffer(tmp_path: Path) ->
         == 0
     )
     assert json.loads(stream.getvalue())["sourceFormat"] == "inspect-ai-sample-jsonl"
+
+
+def test_audit_reads_capsules_and_bundles_without_double_counting(tmp_path: Path) -> None:
+    first = write_log(tmp_path / "logs" / "a.json", agentdojo_log())
+    second = write_log(
+        tmp_path / "logs" / "b.json",
+        agentdojo_log(user_task_id="user_task_2", injection_task_id="injection_task_1"),
+    )
+    single = record_agentdojo_log(first, tmp_path / "single", author="a")
+    # The folder holds the run's trace and its capsule: one episode, not two.
+    assert len(collect_inputs(tmp_path / "single").episodes) == 1
+    assert len(collect_inputs(single.capsule).episodes) == 1
+    bundle = record_agentdojo_bundle([first, second], tmp_path / "b" / "two.sova", author="a")
+    episodes = collect_inputs(bundle.capsule).episodes
+    assert sorted(e.user_task for e in episodes) == ["user_task_0", "user_task_2"]
+    assert all("#" in e.source for e in episodes)
+    assert len(collect_inputs(bundle.capsule, limit=1).episodes) == 1
+    for capsule in (single.capsule, bundle.capsule):
+        assert verify_artifact(capsule).state.value == "verified"

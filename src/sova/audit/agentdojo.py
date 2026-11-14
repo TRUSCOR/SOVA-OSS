@@ -25,16 +25,15 @@ Reading never executes recorded content.
 
 from __future__ import annotations
 
+import tempfile
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
+from pathlib import Path
+from typing import Any
 
 from sova.audit.engine import Episode
-from sova.formats import strict_json_loads
+from sova.formats import PackageReader, sha256_digest, strict_json_loads
 from sova.formats.errors import FormatError
 from sova.trace import TraceReader
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 SECURITY_ORACLE = "agentdojo.injection-task.security"
 _MAX_LOG_BYTES = 256 * 1024 * 1024
@@ -210,12 +209,73 @@ def read_episode(path: Path) -> Episode | SkippedInput:
     return episode_from_log(read_agentdojo_log(path), source=str(path))
 
 
+def _is_capsule(path: Path) -> bool:
+    return path.suffix.lower() == ".sova"
+
+
+def episodes_from_capsule(
+    path: Path, *, seen: set[str] | None = None, label: str | None = None
+) -> list[Episode | SkippedInput]:
+    """Verify a ``.sova`` capsule offline and audit every trace inside it.
+
+    Nested capsules (bundles written by ``sova record agentdojo --bundle``) are opened
+    in turn. A trace whose digest is already in ``seen`` is not counted twice.
+    """
+    seen = set() if seen is None else seen
+    name = label or str(path)
+    out: list[Episode | SkippedInput] = []
+    reader = PackageReader(path)
+    with tempfile.TemporaryDirectory(prefix=".sova-audit-") as staging:
+        for index, descriptor in enumerate(reader.verify("sova.capsule")):
+            if descriptor.role not in {"trace", "capsule"}:
+                continue
+            if descriptor.digest in seen:
+                continue
+            seen.add(descriptor.digest)
+            data = reader.read_object(descriptor)
+            suffix = ".sova-trace" if descriptor.role == "trace" else ".sova"
+            local = Path(staging) / f"object-{index:05d}{suffix}"
+            local.write_bytes(data)
+            inner = f"{name}#{descriptor.path}"
+            if descriptor.role == "trace":
+                item = episode_from_trace(local)
+                if isinstance(item, Episode):
+                    item = Episode(
+                        source=inner,
+                        pipeline=item.pipeline,
+                        suite=item.suite,
+                        user_task=item.user_task,
+                        injection_task=item.injection_task,
+                        attack=item.attack,
+                        verdict=item.verdict,
+                        error=item.error,
+                        messages=item.messages,
+                    )
+                out.append(item)
+            else:
+                out.extend(episodes_from_capsule(local, seen=seen, label=inner))
+    return out
+
+
 def _candidates(root: Path) -> list[Path]:
     return sorted(
         path
         for path in root.rglob("*")
-        if path.is_file() and (path.suffix.lower() == ".json" or _is_trace(path))
+        if path.is_file()
+        and (path.suffix.lower() == ".json" or _is_trace(path) or _is_capsule(path))
     )
+
+
+def _items_for(candidate: Path, seen: set[str]) -> list[Episode | SkippedInput]:
+    """Episodes in one directory entry; a trace already seen (by digest) yields none."""
+    if _is_capsule(candidate):
+        return episodes_from_capsule(candidate, seen=seen)
+    if _is_trace(candidate):
+        digest = sha256_digest(candidate.read_bytes())
+        if digest in seen:
+            return []
+        seen.add(digest)
+    return [read_episode(candidate)]
 
 
 def collect_inputs(path: Path, *, limit: int | None = None) -> AuditInputs:
@@ -226,28 +286,37 @@ def collect_inputs(path: Path, *, limit: int | None = None) -> AuditInputs:
     ``limit`` stops after that many episodes.
     """
     if path.is_file():
-        item = read_episode(path)
-        if isinstance(item, SkippedInput):
-            return AuditInputs(episodes=(), skipped=(item,))
-        return AuditInputs(episodes=(item,), skipped=())
+        items: list[Episode | SkippedInput] = (
+            episodes_from_capsule(path) if _is_capsule(path) else [read_episode(path)]
+        )
+        if limit is not None:
+            items = items[:limit]
+        return AuditInputs(
+            episodes=tuple(i for i in items if isinstance(i, Episode)),
+            skipped=tuple(i for i in items if isinstance(i, SkippedInput)),
+        )
     if not path.is_dir():
         raise FormatError("SOVA-AUDIT-PATH", "audit path is neither a file nor a directory")
     episodes: list[Episode] = []
     skipped: list[SkippedInput] = []
-    for candidate in _candidates(path):
+    seen: set[str] = set()
+    # Loose traces first, so a capsule holding the same trace is not counted again.
+    ordered = sorted(_candidates(path), key=lambda candidate: (_is_capsule(candidate), candidate))
+    for candidate in ordered:
         if limit is not None and len(episodes) >= limit:
             break
         try:
-            item = read_episode(candidate)
+            items = _items_for(candidate, seen)
         except FormatError as error:
             skipped.append(
                 SkippedInput(str(candidate), f"{error.issue.code}: {error.issue.message}")
             )
             continue
-        if isinstance(item, SkippedInput):
-            skipped.append(item)
-        else:
-            episodes.append(item)
+        for item in items:
+            if isinstance(item, SkippedInput):
+                skipped.append(item)
+            elif limit is None or len(episodes) < limit:
+                episodes.append(item)
     return AuditInputs(episodes=tuple(episodes), skipped=tuple(skipped))
 
 
@@ -258,6 +327,7 @@ __all__ = [
     "collect_inputs",
     "episode_from_log",
     "episode_from_trace",
+    "episodes_from_capsule",
     "is_agentdojo_log",
     "parse_agentdojo_log",
     "read_agentdojo_log",

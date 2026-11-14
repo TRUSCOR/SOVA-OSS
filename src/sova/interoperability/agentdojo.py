@@ -432,6 +432,23 @@ def _manifest(
             canonical_json_bytes({"suite": run.suite, "injectionTask": run.injection_task})
         ),
     }
+    # The method is pinned to the digest of its exact declared description: which package,
+    # benchmark version and attack produced the run, and which converter recorded it.
+    manifest["methodology"] = {
+        "id": "agentdojo.run-injection-episode",
+        "version": run.package_version or "unknown",
+        "digest": sha256_digest(
+            canonical_json_bytes(
+                {
+                    "benchmark": "AgentDojo",
+                    "package": run.package_version,
+                    "benchmarkVersion": run.benchmark_version,
+                    "attack": run.attack,
+                    "converter": "sova record agentdojo",
+                }
+            )
+        ),
+    }
     tool = f"agentdojo=={run.package_version}" if run.package_version else "agentdojo"
     manifest["compatibility"] = {
         "runtime": "sova-runtime>=0.1.0a0",
@@ -608,7 +625,25 @@ def record_agentdojo_bundle(
         )
         manifest["compatibility"]["models"] = models
         manifest["taxonomy"]["version"] = scenario["parameters"]["benchmarkVersion"]
-        manifest["taxonomy"]["digest"] = None
+        manifest["taxonomy"]["digest"] = sha256_digest(
+            canonical_json_bytes(
+                sorted(
+                    {(run.suite, run.injection_task or "") for run in runs},
+                )
+            )
+        )
+        if len({run.package_version for run in runs}) > 1 or len({run.attack for run in runs}) > 1:
+            manifest["methodology"]["version"] = "mixed"
+            manifest["methodology"]["digest"] = sha256_digest(
+                canonical_json_bytes(
+                    sorted(
+                        {
+                            (run.package_version or "", run.attack or "", run.benchmark_version)
+                            for run in runs
+                        }
+                    )
+                )
+            )
         digest = build_capsule(destination, manifest, scenario=scenario, named_capsules=nested)
     return RecordedEpisode(
         source=destination.parent, trace=None, capsule=destination, capsule_digest=digest
