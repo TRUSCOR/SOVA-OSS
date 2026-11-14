@@ -214,10 +214,12 @@ def test_repeated_runs_of_one_episode_get_distinct_names(tmp_path: Path) -> None
     used: set[str] = set()
     one = record_agentdojo_log(first, tmp_path / "out", author="a", used_stems=used)
     two = record_agentdojo_log(second, tmp_path / "out", author="a", used_stems=used)
+    assert one.capsule is not None and two.capsule is not None
     assert one.capsule != two.capsule
     assert two.capsule.stem.startswith(one.capsule.stem + "--")
     assert len(two.capsule.stem) == len(one.capsule.stem) + 10
     bundle = record_agentdojo_bundle([first, second], tmp_path / "b" / "r.sova", author="a")
+    assert bundle.capsule is not None
     reader = PackageReader(bundle.capsule)
     nested = [item.path for item in reader.verify("sova.capsule") if item.role == "capsule"]
     assert len(nested) == 2
@@ -365,10 +367,12 @@ def test_audit_reads_capsules_and_bundles_without_double_counting(tmp_path: Path
         agentdojo_log(user_task_id="user_task_2", injection_task_id="injection_task_1"),
     )
     single = record_agentdojo_log(first, tmp_path / "single", author="a")
+    assert single.capsule is not None
     # The folder holds the run's trace and its capsule: one episode, not two.
     assert len(collect_inputs(tmp_path / "single").episodes) == 1
     assert len(collect_inputs(single.capsule).episodes) == 1
     bundle = record_agentdojo_bundle([first, second], tmp_path / "b" / "two.sova", author="a")
+    assert bundle.capsule is not None
     episodes = collect_inputs(bundle.capsule).episodes
     assert sorted(e.user_task for e in episodes) == ["user_task_0", "user_task_2"]
     assert all("#" in e.source for e in episodes)
