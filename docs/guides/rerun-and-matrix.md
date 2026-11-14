@@ -120,6 +120,42 @@ where it stopped. Two capsules that name the same AgentDojo episode share runs.
 One invocation uses one provider; run it again with another `--provider` into the
 same folder to add models from a second provider.
 
+## Measure which setup changes matter on your model
+
+Whether a difference between two runs matters (the tool-output format, a reworded
+system prompt, another model, a prompt-injection defense) depends on the model. On
+the paper's data, rules that held on one model did not carry over to others, so
+`sova calibrate` measures them on the model you use:
+
+```powershell
+sova calibrate findings/ --model my-model --alternative other-model --trials 3 --authorize --out calibration/
+```
+
+Every finding runs unchanged and under each change: `json` (JSON tool output),
+`paraphrase` (a reworded system prompt), `model` (the `--alternative` model; skipped
+without it), `repeat-user-prompt` and `spotlighting` (AgentDojo's defenses). Choose
+a subset with `--changes json,model`. For each change the command reports the drop
+in recurrence from the unchanged runs, with a 95% bootstrap interval over findings
+(`--resamples`, `--seed`), and classes it:
+
+| Class | Meaning |
+|---|---|
+| material | the whole interval is at or above `--threshold` (default 10 points) |
+| non-material | the whole interval is below it |
+| undetermined | neither; more findings or runs are needed |
+
+The folder gets `calibration.json` (every finding's outcome per change) and
+`envelope.json`, which `sova rerun --envelope` reads: material and undetermined
+changes must match the recorded run exactly, non-material ones are only recorded.
+
+```powershell
+sova rerun finding.sova --model my-model --envelope calibration/envelope.json --trials 10 --authorize
+```
+
+A measured class holds for that model, those findings and those settings; measure
+again after a model or benchmark change. Runs already in `--out` are reused, so a
+calibration can grow with more findings or trials.
+
 ## What the answer does not tell you
 
 - The default judge is the verdict audit: a run is an attack when the agent

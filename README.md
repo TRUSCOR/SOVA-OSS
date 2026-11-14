@@ -79,17 +79,18 @@ Anyone can check it offline, and anyone with a model key can run the attack agai
 | Did the attack really work? | `sova audit runs/` | Each benchmark "success" checked against the agent's actual tool calls: a real attacker action, a warning scored as an attack, an attacker action scored as no attack, or a crash given a verdict |
 | Does it still work on this model today, and how often? | `sova rerun finding.sova --model M --trials 10 --authorize` | "attack worked 7 of 10 runs (Wilson 95%: 40%-89%)", plus whether this counts as a reproduction of the recorded run or a different setup |
 | Which known attacks work on the model I am moving to? | `sova matrix findings/ --baseline OLD --candidate NEW --trials 3 --authorize` | Per finding: still works, stopped working, newly works, or can't tell |
+| Which setup changes matter on my model? | `sova calibrate findings/ --model M --alternative OTHER --authorize` | Per change (tool-output format, system prompt, model, defenses): the drop in recurrence with a 95% interval, classed material, non-material or undetermined, and an envelope file for `sova rerun --envelope` |
 | Can I prove it to someone who does not trust me? | `sova verify finding.sova`, `sova show`, `sova compare` | Offline integrity check, the step-by-step timeline, and outcome comparison, without running anything |
 | How do I make one? | `sova record agentdojo run-log.json --out findings/` | A `.sova-trace` and `.sova` capsule from an AgentDojo run log |
 
 ```bash
 pip install "git+https://github.com/TRUSCOR/SOVA-OSS"                       # verify, show, compare, audit, record
-pip install "sova-oss[agentdojo] @ git+https://github.com/TRUSCOR/SOVA-OSS"  # adds rerun and matrix
+pip install "sova-oss[agentdojo] @ git+https://github.com/TRUSCOR/SOVA-OSS"  # adds rerun, matrix and calibrate
 ```
 
-Opening, verifying, showing, comparing and auditing never call a model. `rerun` and
-`matrix` call one only with `--authorize`, read keys only from environment variables
-you name, and run only AgentDojo's simulated bank, inbox, travel and chat apps today.
+Opening, verifying, showing, comparing and auditing never call a model. `rerun`,
+`matrix` and `calibrate` call one only with `--authorize`, read keys only from environment
+variables you name, and run only AgentDojo's simulated bank, inbox, travel and chat apps today.
 Guides: [audit and record](docs/guides/audit-and-record.md) ·
 [re-run and upgrade checks](docs/guides/rerun-and-matrix.md).
 

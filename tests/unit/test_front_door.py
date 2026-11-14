@@ -16,7 +16,7 @@ from sova.interoperability.agentdojo import record_agentdojo_log
 if TYPE_CHECKING:
     from pathlib import Path
 
-CORE_ORDER = ["record", "verify", "show", "compare", "rerun", "audit", "matrix"]
+CORE_ORDER = ["record", "verify", "show", "compare", "rerun", "audit", "matrix", "calibrate"]
 
 
 def recorded(tmp_path: Path) -> tuple[Path, Path]:

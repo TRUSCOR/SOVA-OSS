@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Command-line arguments and handlers for ``sova rerun`` and ``sova matrix``."""
+"""Arguments and handlers for ``sova rerun``, ``sova matrix`` and ``sova calibrate``."""
 
 from __future__ import annotations
 
@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import IO, Any
 
 from sova.rerun.agentdojo import AgentDojoRunner
+from sova.rerun.calibrate import CHANGES, DEFAULT_CHANGES, CalibrateOptions, run_calibration
 from sova.rerun.engine import (
     DEFAULT_ENVELOPE,
     EpisodeRunner,
@@ -55,6 +56,20 @@ examples:
 Runs already recorded in --out are reused, so an interrupted matrix can be resumed.
 """
 
+CALIBRATE_EPILOG = """\
+example:
+  sova calibrate findings/ --model my-model --alternative other-model --trials 3 \\
+      --authorize --out calibration/
+  sova rerun finding.sova --model my-model --envelope calibration/envelope.json --authorize
+
+Each finding runs unchanged and under each change. A change is material when the 95%
+interval of its drop in recurrence is at or above --threshold, non-material when the
+whole interval is below it, and undetermined otherwise. The envelope treats material
+and undetermined changes as exact-match and records non-material ones. Runs already
+in --out are reused; without --authorize no model is called, so the report is rebuilt
+only when every run is already there.
+"""
+
 
 def _progress(stream: IO[str]) -> Callable[[str], None]:
     def write(line: str) -> None:
@@ -80,7 +95,7 @@ def _non_negative_float(value: str) -> float:
     return number
 
 
-def _add_common(parser: argparse.ArgumentParser) -> None:
+def _add_common(parser: argparse.ArgumentParser, *, envelope: bool = True) -> None:
     provider = parser.add_argument_group(
         "model provider (credentials come only from environment variables)"
     )
@@ -146,12 +161,13 @@ def _add_common(parser: argparse.ArgumentParser) -> None:
         metavar="VERSION",
         help="AgentDojo suite version if the capsule omits it",
     )
-    run.add_argument(
-        "--envelope",
-        type=Path,
-        metavar="FILE",
-        help="JSON file overriding which differences from the recorded run are material",
-    )
+    if envelope:
+        run.add_argument(
+            "--envelope",
+            type=Path,
+            metavar="FILE",
+            help="JSON file overriding which differences from the recorded run are material",
+        )
     output = parser.add_argument_group("output")
     output.add_argument(
         "--out", type=Path, metavar="DIR", help="output folder (runs found there are reused)"
@@ -195,6 +211,55 @@ def add_matrix_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--baseline", metavar="MODEL", help="upgrade check: the current model")
     parser.add_argument("--candidate", metavar="MODEL", help="upgrade check: the new model")
     _add_common(parser)
+
+
+def _changes(value: str) -> tuple[str, ...]:
+    names = tuple(item.strip() for item in value.split(",") if item.strip())
+    unknown = [name for name in names if name not in CHANGES]
+    if not names or unknown:
+        message = f"choose from {', '.join(CHANGES)}"
+        raise argparse.ArgumentTypeError(message)
+    return names
+
+
+def _fraction(value: str) -> float:
+    number = float(value)
+    if not 0 < number < 1:
+        message = "must be between 0 and 1"
+        raise argparse.ArgumentTypeError(message)
+    return number
+
+
+def add_calibrate_arguments(parser: argparse.ArgumentParser) -> None:
+    """Register ``sova calibrate`` arguments."""
+    parser.formatter_class = argparse.RawDescriptionHelpFormatter
+    parser.description = (
+        "Measure, on one model, which setup changes affect whether recorded attacks recur, "
+        "and write an envelope file for `sova rerun --envelope`."
+    )
+    parser.epilog = CALIBRATE_EPILOG
+    parser.add_argument("findings", nargs="+", type=Path, help="capsules or folders of capsules")
+    parser.add_argument("--model", required=True, help="model id to calibrate")
+    parser.add_argument("--alternative", metavar="MODEL", help="other model for the 'model' change")
+    parser.add_argument(
+        "--changes",
+        type=_changes,
+        default=None,
+        metavar="A,B",
+        help=f"changes to measure (default: {','.join(DEFAULT_CHANGES)}; "
+        "'model' is skipped without --alternative)",
+    )
+    parser.add_argument(
+        "--threshold",
+        type=_fraction,
+        default=0.10,
+        help="drop in recurrence that counts as material (default 0.10)",
+    )
+    parser.add_argument(
+        "--resamples", type=_positive_int, default=2000, help="bootstrap resamples (default 2000)"
+    )
+    parser.add_argument("--seed", type=int, default=20261113, help="bootstrap seed")
+    _add_common(parser, envelope=False)
 
 
 def settings_factory(args: argparse.Namespace) -> Callable[[str], ModelSettings]:
@@ -373,12 +438,67 @@ def run_matrix_command(
     return 0
 
 
+def run_calibrate_command(
+    args: argparse.Namespace,
+    *,
+    runner_factory: RunnerFactory | None = None,
+    stdout: IO[str] | None = None,
+    stderr: IO[str] | None = None,
+) -> int:
+    """Handle ``sova calibrate``."""
+    out = stdout or sys.stdout
+    err = stderr or sys.stderr
+    if args.changes is not None:
+        changes = args.changes
+    else:
+        changes = tuple(
+            name for name in DEFAULT_CHANGES if name != "model" or args.alternative is not None
+        )
+    models = [args.model] + ([args.alternative] if args.alternative else [])
+    if args.alternative == args.model:
+        raise RerunError("SOVA-CALIBRATE-ALTERNATIVE", "--alternative must differ from --model")
+    settings_for = settings_factory(args)
+    findings = [load_finding(path) for path in discover_capsules(args.findings)]
+    out_dir = args.out or Path("sova-calibration")
+    options = CalibrateOptions(
+        model=args.model,
+        provider=args.provider,
+        trials=args.trials or 3,
+        out_dir=out_dir,
+        authorize=args.authorize,
+        changes=changes,
+        alternative=args.alternative,
+        threshold=args.threshold,
+        resamples=args.resamples,
+        seed=args.seed,
+        concurrency=args.concurrency,
+        attack_name=args.attack_name,
+        benchmark_version=args.benchmark_version,
+        base_override=_condition_override(args),
+        settings={model: settings_for(model).describe() for model in models},
+    )
+    report = run_calibration(
+        findings,
+        options,
+        runner=(runner_factory or default_runner)(settings_for),
+        budget=_budget(args, RunStore(out_dir)),
+        progress=_progress(err),
+    )
+    if args.json:
+        out.write(json.dumps(report.to_json(), indent=2, sort_keys=True) + "\n")
+    else:
+        out.write(report.render() + "\n")
+    return 0
+
+
 __all__ = [
     "RunnerFactory",
+    "add_calibrate_arguments",
     "add_matrix_arguments",
     "add_rerun_arguments",
     "default_runner",
     "installed_version",
+    "run_calibrate_command",
     "run_matrix_command",
     "run_rerun_command",
     "settings_factory",

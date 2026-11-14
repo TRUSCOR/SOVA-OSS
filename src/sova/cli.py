@@ -260,8 +260,10 @@ from sova.replay import (
 )
 from sova.reproduction import compare_observable_outcomes
 from sova.rerun.command import (
+    add_calibrate_arguments,
     add_matrix_arguments,
     add_rerun_arguments,
+    run_calibrate_command,
     run_matrix_command,
     run_rerun_command,
 )
@@ -989,6 +991,12 @@ def build_parser() -> argparse.ArgumentParser:  # noqa: PLR0915
     )
     add_matrix_arguments(matrix_parser)
     matrix_parser.set_defaults(handler=_matrix)
+    calibrate_parser = commands.add_parser(
+        "calibrate",
+        help="measure which setup changes affect recurrence on a model (needs --authorize)",
+    )
+    add_calibrate_arguments(calibrate_parser)
+    calibrate_parser.set_defaults(handler=_calibrate)
 
     export_parser = commands.add_parser(
         "export",
@@ -5591,6 +5599,10 @@ def _rerun(args: argparse.Namespace) -> int:
 
 def _matrix(args: argparse.Namespace) -> int:
     return run_matrix_command(args)
+
+
+def _calibrate(args: argparse.Namespace) -> int:
+    return run_calibrate_command(args)
 
 
 def _export(args: argparse.Namespace) -> int:

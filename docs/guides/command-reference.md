@@ -39,8 +39,11 @@ and whether the recorded outcome was reproduced. A different model, defense,
 benchmark version, or attack makes the comparison "not comparable" while the
 outcome rate stays the answer. `sova matrix` runs findings x models x trials and,
 with `--baseline`/`--candidate`, classifies each finding across a model upgrade.
+`sova calibrate FINDINGS --model M --authorize` measures, on model `M`, which setup
+changes (tool-output format, system prompt, model, defenses) change how often the
+findings recur, and writes an envelope file for `sova rerun --envelope`.
 Keys come only from the environment variables named on the command line. Without
-`--authorize` neither command calls a model; both reuse runs already in `--out`.
+`--authorize` none of these commands calls a model; all reuse runs already in `--out`.
 Needs the optional `sova-oss[agentdojo]` extra. See the
 [re-run guide](rerun-and-matrix.md).
 

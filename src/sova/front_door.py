@@ -22,6 +22,7 @@ CORE_COMMANDS: tuple[tuple[str, str], ...] = (
     ("rerun", "run a recorded scenario again from its capsule"),
     ("audit", "check benchmark attack verdicts against the tool calls in each episode"),
     ("matrix", "run scenarios across several models and tabulate the outcomes"),
+    ("calibrate", "measure which setup changes matter on a model; writes an envelope"),
 )
 
 
@@ -29,8 +30,9 @@ def front_door_description() -> str:
     """Return the top-level help description, leading with the core commands."""
     width = max(len(name) for name, _summary in CORE_COMMANDS)
     lines = [
-        "SOVA OSS pre-alpha: record, verify, show, compare, re-run, and audit portable records",
-        "of attacks on AI agents. Opening a record runs nothing; re-running needs --authorize.",
+        "SOVA OSS pre-alpha: record, verify, show, compare, re-run, audit and calibrate",
+        "portable records of attacks on AI agents. Opening a record runs nothing;",
+        "running a model needs --authorize.",
         "",
         "core commands:",
         *(f"  {name.ljust(width)}  {summary}" for name, summary in CORE_COMMANDS),
