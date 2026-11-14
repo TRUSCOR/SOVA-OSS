@@ -44,6 +44,11 @@ def owner_uid() -> int:
     return 0 if geteuid is None else int(geteuid())
 
 
+_STAT_SEQUENCE_FIELDS = frozenset(
+    {"st_mode", "st_ino", "st_dev", "st_nlink", "st_uid", "st_gid", "st_size"}
+)
+
+
 class _RootOwnedPath(PosixPath):
     """Report files owned by this unprivileged test process as owned by root.
 
@@ -57,7 +62,13 @@ class _RootOwnedPath(PosixPath):
             return observed
         fields = list(observed)
         fields[4] = 0  # st_uid
-        named = {name: getattr(observed, name) for name in dir(observed) if name.startswith("st_")}
+        # The mapping may only carry fields beyond the sequence part (Python 3.13+
+        # rejects duplicates), e.g. float/ns timestamps and st_blksize.
+        named = {
+            name: getattr(observed, name)
+            for name in dir(observed)
+            if name.startswith("st_") and name not in _STAT_SEQUENCE_FIELDS
+        }
         return os.stat_result(fields, named)
 
 
