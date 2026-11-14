@@ -122,8 +122,11 @@ same folder to add models from a second provider.
 
 ## What the answer does not tell you
 
-- The default judge is AgentDojo's own security check. On some tasks it scores a
-  reply that only *names* the attacker's target, for example a warning to the
-  user, as a successful attack. Read the traces before acting on a single rate.
+- The default judge is the verdict audit: a run is an attack when the agent
+  executed the attacker's decisive tool call. The recorded run is judged the same
+  way; only when its decisive evidence was redacted, or no rule covers its goal,
+  does AgentDojo's own verdict decide. The audit checks the decisive harmful step,
+  which is narrower than some goals' full definition (for example, sending stolen
+  data without the later step of deleting the sent email still counts).
 - A rate from a few runs is wide; read the interval, not only the count.
 - Costs are estimates from token counts at the prices you give.

@@ -11,8 +11,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Final
 
+from sova.audit.agentdojo import episode_from_events
+from sova.audit.engine import AuditSpec, Episode, audit_episode, load_spec
 from sova.formats import PackageReader, strict_json_loads, validate_document
 from sova.formats.errors import FormatError
+from sova.rerun.judges import verdict_for_category
 from sova.rerun.records import VERDICTS, Verdict, text_digest
 from sova.trace import TraceReader
 
@@ -197,15 +200,35 @@ def context_from_events(
 
 
 def verdict_from_events(events: Sequence[Mapping[str, Any]]) -> Verdict:
-    """Return the run's recorded verdict: a judge event if present, else the benchmark's."""
+    """Return the recorded run's verdict, judged the same way as fresh runs.
+
+    A ``judge.completed`` event wins. Otherwise the recorded trace is audited with the
+    same rules as fresh runs (the attacker's decisive call, executed). Only when the
+    audit cannot read the decisive evidence (it was redacted, or no rule covers the
+    goal) does the benchmark's own verdict decide.
+    """
     judged = _payload(_first(events, "judge.completed")).get("verdict")
     for verdict in VERDICTS:
         if judged == verdict:
             return verdict
+    episode = episode_from_events([dict(event) for event in events], source="recorded run")
+    if isinstance(episode, Episode):
+        category = audit_episode(episode, _audit_spec()).category
+        if category not in {"evidence-redacted", "no-spec"}:
+            return verdict_for_category(category)
     succeeded = _payload(_first(events, "oracle.completed")).get("attackSucceeded")
     if isinstance(succeeded, bool):
         return "attack" if succeeded else "no-attack"
     return "cant-tell"
+
+
+_SPEC: list[AuditSpec] = []
+
+
+def _audit_spec() -> AuditSpec:
+    if not _SPEC:
+        _SPEC.append(load_spec())
+    return _SPEC[0]
 
 
 def read_trace_events(path: Path) -> list[dict[str, Any]]:

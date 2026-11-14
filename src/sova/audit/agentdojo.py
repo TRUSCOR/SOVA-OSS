@@ -168,7 +168,11 @@ def episode_from_trace(path: Path) -> Episode | SkippedInput:
     """Verify one `.sova-trace` offline and map its AgentDojo events to an episode."""
     reader = TraceReader(path)
     reader.verify()
-    events = reader.events()
+    return episode_from_events(reader.events(), source=str(path))
+
+
+def episode_from_events(events: list[dict[str, Any]], *, source: str) -> Episode | SkippedInput:
+    """Map the events of an already verified AgentDojo trace to an audit episode."""
     run = next(
         (
             event["payload"]
@@ -177,7 +181,6 @@ def episode_from_trace(path: Path) -> Episode | SkippedInput:
         ),
         None,
     )
-    source = str(path)
     if run is None or not isinstance(run.get("suite"), str):
         return SkippedInput(source, "trace has no AgentDojo run.started event")
     injection = run.get("injectionTask")
@@ -325,6 +328,7 @@ __all__ = [
     "AuditInputs",
     "SkippedInput",
     "collect_inputs",
+    "episode_from_events",
     "episode_from_log",
     "episode_from_trace",
     "episodes_from_capsule",
