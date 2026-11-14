@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+import os
+import signal
 import subprocess
 from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
@@ -249,12 +251,35 @@ def test_owned_process_and_phase_cleanup_cover_normal_and_failure_paths(
             del timeout
             self.waited += 1
 
+    signals: list[tuple[int, int]] = []
+
+    def record(pid: int, number: int) -> None:
+        signals.append((pid, number))
+
+    # The fake process carries a fixed pid; never signal a real POSIX process group.
+    monkeypatch.setattr(os, "kill", record)
     finished = Process([0])
     software_engine._OwnedSoftwareProcess(cast("Any", finished)).close()
-    assert finished.terminated == 0
+    assert finished.terminated == 0 and signals == []
     running = Process([None, None])
     software_engine._OwnedSoftwareProcess(cast("Any", running)).close()
-    assert running.terminated == 1 and running.waited == 1
+    if os.name == "nt":
+        assert running.terminated == 1 and signals == []
+    else:
+        assert running.terminated == 0 and signals == [(-42, signal.SIGTERM)]
+    assert running.waited == 1 and running.killed == 0
+
+    class Unsignalable(Process):
+        def terminate(self) -> None:
+            raise OSError
+
+    def refuse(_pid: int, _number: int) -> None:
+        raise ProcessLookupError
+
+    monkeypatch.setattr(os, "kill", refuse)
+    stubborn = Unsignalable([None])
+    software_engine._OwnedSoftwareProcess(cast("Any", stubborn)).close()
+    assert stubborn.killed == 1 and stubborn.waited == 1
 
     target = SimpleNamespace(close=lambda: None)
     recording = SimpleNamespace(close=lambda: None)

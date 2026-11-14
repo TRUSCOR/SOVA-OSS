@@ -49,30 +49,60 @@ if TYPE_CHECKING:
 
 _AUTHORITY_TARGET = "sova:sandbox:owned-software-engine-fixture"
 _MARKER = "SOVA-OWNED-SOFTWARE-TRIGGER-OBSERVED"
-_TARGET_PROGRAM = """from pathlib import Path
+# The software engine binds every launched target to a measured process identity,
+# which needs Windows process APIs or Linux procfs; elsewhere it fails closed.
+_requires_process_identity = pytest.mark.skipif(
+    sys.platform != "win32" and not Path("/proc").is_dir(),
+    reason="process identity attestation is unavailable on this platform",
+)
+# The fixture programs exchange newline-terminated messages through files. A
+# reader can observe a file that its peer has created but not yet written, and
+# on Windows an on-access scanner can briefly hold either file. Both programs
+# therefore wait for the terminator and retry transient OSErrors; otherwise an
+# agent intermittently reports "not-observed" or "not-reproduced" under load.
+_TARGET_PROGRAM = r"""from pathlib import Path
 import time
 
 request = Path('request.txt')
 response = Path('response.txt')
+answered = False
 while True:
-    if request.exists():
-        value = request.read_text(encoding='utf-8')
-        request.unlink()
-        result = 'SOVA-OWNED-SOFTWARE-TRIGGER-OBSERVED' if value == 'probe' else 'ordinary'
-        response.write_text(result, encoding='utf-8')
+    try:
+        if request.exists():
+            if not answered:
+                value = request.read_text(encoding='utf-8')
+                if value.endswith('\n'):
+                    marker = 'SOVA-OWNED-SOFTWARE-TRIGGER-OBSERVED'
+                    result = marker if value.strip() == 'probe' else 'ordinary'
+                    response.write_text(result + '\n', encoding='utf-8')
+                    answered = True
+            if answered:
+                request.unlink()
+                answered = False
+    except OSError:
+        pass
     time.sleep(0.02)
 """
-_CLIENT_PROGRAM = """from pathlib import Path
+_CLIENT_PROGRAM = r"""from pathlib import Path
 import sys
 import time
 
-Path('request.txt').write_text(sys.argv[1], encoding='utf-8')
+request = Path('request.txt')
 response = Path('response.txt')
+sent = False
 deadline = time.monotonic() + 15
 while time.monotonic() < deadline:
-    if response.exists():
-        print(response.read_text(encoding='utf-8'))
-        raise SystemExit(0)
+    try:
+        if not sent:
+            request.write_text(sys.argv[1] + '\n', encoding='utf-8')
+            sent = True
+        elif response.exists():
+            value = response.read_text(encoding='utf-8')
+            if value.endswith('\n'):
+                print(value.strip())
+                raise SystemExit(0)
+    except OSError:
+        pass
     time.sleep(0.02)
 raise SystemExit(2)
 """
@@ -725,6 +755,7 @@ def _gui_form_document() -> dict[str, Any]:
 
 
 @pytest.mark.integration
+@_requires_process_identity
 def test_owned_software_engine_interacts_and_reproduces_fresh_target(
     tmp_path: Path,
 ) -> None:
@@ -783,6 +814,7 @@ def test_owned_software_engine_interacts_and_reproduces_fresh_target(
 
 
 @pytest.mark.integration
+@_requires_process_identity
 def test_owned_software_engine_exercises_two_portable_terminal_surfaces(
     tmp_path: Path,
 ) -> None:
@@ -873,6 +905,7 @@ def test_owned_software_engine_exercises_two_portable_terminal_surfaces(
 
 
 @pytest.mark.integration
+@_requires_process_identity
 def test_owned_software_swarm_runs_isolated_targets_and_embeds_findings(
     tmp_path: Path,
 ) -> None:
