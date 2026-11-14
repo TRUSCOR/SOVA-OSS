@@ -67,8 +67,8 @@ def _capture_window_bmp(window_id: int) -> bytes:  # noqa: PLR0912, PLR0915
             "SOVA-WINDOW-RECORDING-PLATFORM",
             "attested window recording is currently available only on Windows",
         )
-    user32 = ctypes.WinDLL("user32", use_last_error=True)
-    gdi32 = ctypes.WinDLL("gdi32", use_last_error=True)
+    user32 = ctypes.WinDLL("user32", use_last_error=True)  # type: ignore[attr-defined,unused-ignore]
+    gdi32 = ctypes.WinDLL("gdi32", use_last_error=True)  # type: ignore[attr-defined,unused-ignore]
     user32.IsWindow.argtypes = (wintypes.HWND,)
     user32.IsWindow.restype = wintypes.BOOL
     user32.GetWindowRect.argtypes = (wintypes.HWND, ctypes.POINTER(wintypes.RECT))

@@ -132,7 +132,7 @@ def _send_message(
             "SOVA-NATIVE-WINDOW-PLATFORM",
             "native exact-window computer use is available only on Windows",
         )
-    user32 = ctypes.WinDLL("user32", use_last_error=True)
+    user32 = ctypes.WinDLL("user32", use_last_error=True)  # type: ignore[attr-defined,unused-ignore]
     user32.SendMessageTimeoutW.argtypes = (
         wintypes.HWND,
         wintypes.UINT,
@@ -172,7 +172,7 @@ def _bound_child_at_point(
             "SOVA-NATIVE-WINDOW-PLATFORM",
             "native exact-window child resolution is unavailable",
         )
-    user32 = ctypes.WinDLL("user32", use_last_error=True)
+    user32 = ctypes.WinDLL("user32", use_last_error=True)  # type: ignore[attr-defined,unused-ignore]
     user32.ChildWindowFromPointEx.argtypes = (
         wintypes.HWND,
         wintypes.POINT,
@@ -231,8 +231,8 @@ def _discover_owned_controls(
             "native exact-window control discovery is available only on Windows",
         )
     attestation.assert_still_live()
-    user32 = ctypes.WinDLL("user32", use_last_error=True)
-    callback_type = ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
+    user32 = ctypes.WinDLL("user32", use_last_error=True)  # type: ignore[attr-defined,unused-ignore]
+    callback_type = ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)  # type: ignore[attr-defined,unused-ignore]
     user32.EnumChildWindows.argtypes = (wintypes.HWND, callback_type, wintypes.LPARAM)
     user32.EnumChildWindows.restype = wintypes.BOOL
     user32.IsWindowVisible.argtypes = (wintypes.HWND,)
@@ -294,10 +294,10 @@ def _discover_owned_controls(
         )
         return True
 
-    ctypes.set_last_error(0)
+    ctypes.set_last_error(0)  # type: ignore[attr-defined,unused-ignore]
     callback = callback_type(collect)
     completed = user32.EnumChildWindows(attestation.window_id, callback, 0)
-    error = ctypes.get_last_error()
+    error = ctypes.get_last_error()  # type: ignore[attr-defined,unused-ignore]
     if not completed and len(rows) < _MAX_TARGETS and error:
         raise FormatError(
             "SOVA-NATIVE-WINDOW-DISCOVERY",
