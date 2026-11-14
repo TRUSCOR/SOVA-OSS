@@ -27,6 +27,13 @@ have independent version ledgers.
 
 ### Added
 
+- Added `sova audit`, which checks each AgentDojo episode's security verdict
+  against the recorded tool calls using a frozen, digest-identified rule set
+  (`agentdojo-v1.2.2`), and `sova record agentdojo`, which converts AgentDojo
+  run logs into `.sova-trace` files and `.sova` capsules; `sova record inspect`
+  and `sova record trace` route to the existing importers.
+- Added `sova show` (capsule summary or trace timeline) and made `sova --help`
+  lead with the core commands.
 - Bound the exact README, documentation, demo, website, paper, Registry, and
   release-note claim surfaces into the P6 release candidate and launch dossier.
   A canonical snapshot with any held or unreviewed surface now blocks publication.

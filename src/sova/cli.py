@@ -35,6 +35,7 @@ from sova.assessment import (
     run_reference_assessment,
     target_template,
 )
+from sova.audit import DEFAULT_SPEC, run_audit
 from sova.capsule import (
     analyze_migration,
     build_capsule,
@@ -136,6 +137,7 @@ from sova.formats import (
     validate_document,
 )
 from sova.formats.errors import FormatError
+from sova.front_door import front_door_description, show_artifact
 from sova.intake import (
     EntryPoint,
     EntryPointKind,
@@ -149,6 +151,11 @@ from sova.intake import (
     run_universal_intake,
     target_profile_template,
     validate_target_profile,
+)
+from sova.interoperability.record import (
+    record_agentdojo,
+    record_inspect,
+    record_trace_attestation,
 )
 from sova.live import (
     adaptive_browser_policy_from_mapping,
@@ -303,6 +310,19 @@ def _path(value: str) -> Path:
     return Path(value)
 
 
+_POSITIVE_COUNT_MESSAGE = "must be a positive integer"
+
+
+def _positive_count(value: str) -> int:
+    try:
+        count = int(value)
+    except ValueError as error:
+        raise argparse.ArgumentTypeError(_POSITIVE_COUNT_MESSAGE) from error
+    if count < 1:
+        raise argparse.ArgumentTypeError(_POSITIVE_COUNT_MESSAGE)
+    return count
+
+
 def _add_browser_profile_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--browser-profile-vault",
@@ -336,13 +356,81 @@ def build_parser() -> argparse.ArgumentParser:  # noqa: PLR0915
     """Build the public command-line parser without performing side effects."""
     parser = argparse.ArgumentParser(
         prog="sova",
-        description=(
-            "SOVA OSS pre-alpha: inspect, validate, migrate, and verify portable "
-            "AI-behavior capsules and traces locally."
-        ),
+        description=front_door_description(),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
-    commands = parser.add_subparsers(dest="command")
+    commands = parser.add_subparsers(dest="command", metavar="COMMAND")
+
+    # Front-door commands (record, show, audit). Handlers below delegate to
+    # sova.interoperability.record, sova.front_door, and sova.audit.
+    record_parser = commands.add_parser(
+        "record", help="turn an external run log into SOVA artifacts without re-running it"
+    )
+    record_commands = record_parser.add_subparsers(dest="record_command")
+    record_agentdojo_parser = record_commands.add_parser(
+        "agentdojo",
+        help="write a .sova-trace and a .sova capsule for each AgentDojo run log",
+    )
+    record_agentdojo_parser.add_argument(
+        "source", type=_path, help="one AgentDojo log, or a directory searched recursively"
+    )
+    record_agentdojo_parser.add_argument("--out", type=_path, required=True)
+    record_agentdojo_parser.add_argument("--author", default="Unknown author")
+    record_agentdojo_parser.add_argument(
+        "--bundle",
+        action="store_true",
+        help="write one capsule that nests one capsule per episode",
+    )
+    record_agentdojo_parser.add_argument("--name", help="bundle file name (default: DIR-bundle)")
+    record_agentdojo_parser.set_defaults(handler=_record_agentdojo)
+    for record_name, record_help, record_handler in (
+        (
+            "inspect",
+            "import an Inspect AI sample dataset (JSON/JSONL) as an inert scenario set",
+            _record_inspect,
+        ),
+        (
+            "trace",
+            "import TRACE trust records as declared trust inputs, not observations",
+            _record_trace,
+        ),
+    ):
+        record_import = record_commands.add_parser(record_name, help=record_help)
+        record_import.add_argument("source", type=_path)
+        record_import.add_argument("--license", required=True, help="SPDX licence of the source")
+        record_import.add_argument("--source-url", required=True)
+        record_import.add_argument("--out", type=_path, help="JSON destination; default stdout")
+        record_import.set_defaults(handler=record_handler)
+
+    show_parser = commands.add_parser(
+        "show", help="print a capsule summary or a trace timeline without running anything"
+    )
+    show_parser.add_argument("path", type=_path)
+    show_parser.set_defaults(handler=_show)
+
+    audit_parser = commands.add_parser(
+        "audit",
+        help="check benchmark attack verdicts against the tool calls in each episode",
+        description=(
+            "For each AgentDojo episode, compare the benchmark's security verdict with the "
+            "recorded messages: did the agent request the attacker's decisive tool call, and "
+            "did it run without error? Reads logs and traces only; calls no model."
+        ),
+    )
+    audit_parser.add_argument(
+        "path",
+        type=_path,
+        help="an AgentDojo log, a .sova-trace, or a directory searched recursively",
+    )
+    audit_parser.add_argument(
+        "--spec",
+        default=DEFAULT_SPEC,
+        help=f"packaged rule set name or a rule-set JSON file (default: {DEFAULT_SPEC})",
+    )
+    audit_parser.add_argument("--json", type=_path, help="write per-episode results here")
+    audit_parser.add_argument("--limit", type=_positive_count, help="audit at most N episodes")
+    audit_parser.set_defaults(handler=_audit)
 
     init_parser = commands.add_parser(
         "init", help="create an account-free local SOVA data directory"
@@ -3123,6 +3211,51 @@ def _target_intake(args: argparse.Namespace) -> int:
 def _inspect(args: argparse.Namespace) -> int:
     sys.stdout.write(render_capsule(args.path))
     return 0
+
+
+def _record_agentdojo(args: argparse.Namespace) -> int:
+    return record_agentdojo(
+        args.source,
+        args.out,
+        author=args.author,
+        bundle=args.bundle,
+        bundle_name=args.name,
+        stdout=sys.stdout,
+    )
+
+
+def _record_inspect(args: argparse.Namespace) -> int:
+    return record_inspect(
+        args.source,
+        license_expression=args.license,
+        source_url=args.source_url,
+        destination=args.out,
+        stdout=sys.stdout,
+    )
+
+
+def _record_trace(args: argparse.Namespace) -> int:
+    return record_trace_attestation(
+        args.source,
+        license_expression=args.license,
+        source_url=args.source_url,
+        destination=args.out,
+        stdout=sys.stdout,
+    )
+
+
+def _show(args: argparse.Namespace) -> int:
+    return show_artifact(args.path, sys.stdout)
+
+
+def _audit(args: argparse.Namespace) -> int:
+    return run_audit(
+        args.path,
+        spec_reference=args.spec,
+        json_destination=args.json,
+        limit=args.limit,
+        stdout=sys.stdout,
+    )
 
 
 def _detected_path(explicit: Path | None, candidates: tuple[str, ...], role: str) -> Path:

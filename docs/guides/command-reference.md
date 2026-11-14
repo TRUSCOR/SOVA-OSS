@@ -8,6 +8,7 @@ human text or HTML artifact is the command's purpose.
 
 | Family | Implemented operations |
 |---|---|
+| Core (shown first by `sova --help`) | `record agentdojo`, `record inspect`, `record trace`, `verify`, `show`, `compare`, `audit` |
 | Setup | `init`, `doctor`, `data delete` |
 | Capsule | `inspect`, `validate`, `lint`, `verify`, `migrate`, `compat`, `format`, `hash`, `template`, `pack` |
 | Trace/replay | `playback`, one-step `replay FINDING.sova`, `replay open`, `replay modes`, `replay timeline`, `replay capsule`, `replay serve`, `replay study`, `replay clip`, `query`, `compare`, `export`, `recover-trace` |
@@ -22,6 +23,13 @@ human text or HTML artifact is the command's purpose.
 | Release and compatibility | `release sbom`, `release cargo-sbom`, `release checksums`, `release verify-checksums`, `release keygen`, `release sign-evidence`, `release assemble-evidence`, `release dossier`, `conformance export`, `conformance verify` |
 | Final-mile acceptance | `acceptance run`, `acceptance evaluate`, `acceptance template` |
 | Authorized targets | `target profile-create`, `target profile-validate`, `target intake`, `target browser-kit`, `target template`, `target validate`, `target plan`, `target fixture`, `target challenge`, `target prove`, `detonate owned-web-fixture`, `detonate owned-software-fixture`, `detonate browser`, `detonate software`, `hunt owned-web-fixture`, `hunt browser`, `hunt agent-browser`, `hunt adaptive-browser` |
+
+`sova audit PATH` checks each AgentDojo episode's security verdict against the
+recorded messages: did the agent request the attacker's decisive tool call, and
+did it execute? `sova record agentdojo LOG-OR-DIR --out DIR` writes a
+`.sova-trace` and `.sova` capsule per run log (or one nested bundle with
+`--bundle`). `sova show FILE` prints a capsule like `inspect` and a trace like
+`playback`. See [Audit benchmark verdicts and record runs](audit-and-record.md).
 
 `release dossier` requires the exact canonical `sova.public-claims-snapshot`
 between the claims-register and destination arguments. The snapshot covers the
