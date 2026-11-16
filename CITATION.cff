@@ -5,6 +5,7 @@ abstract: "A local-first open-source workbench for mapping, adversarially testin
 authors:
   - family-names: "Patil"
     given-names: "Gautam R"
+    orcid: "https://orcid.org/0009-0005-7614-2771"
   - name: "TRUSCOR"
 repository-code: "https://github.com/TRUSCOR/SOVA-OSS"
 url: "https://truscor.org"

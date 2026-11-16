@@ -66,7 +66,8 @@
 
 > [!TIP]
 > **Preprint, version 1.1:** [Did the Attack Really Work? Auditing, Re-running,
-> and Sealing AI-Agent Security Findings with .sova](https://github.com/TRUSCOR/research/tree/main/preprints).
+> and Sealing AI-Agent Security Findings with .sova](https://doi.org/10.5281/zenodo.24290458)
+> (DOI 10.5281/zenodo.24290458).
 > It checks AgentDojo's attack verdicts against what agents actually did,
 > re-runs recorded attacks on current models, and tests when two runs are
 > comparable, under protocols published before the runs. Every run it reports
