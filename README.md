@@ -65,9 +65,10 @@
 > review, and evidence oracles remain the operator's responsibility.
 
 > [!TIP]
-> **Preprint, version 1.1:** [Did the Attack Really Work? Auditing, Re-running,
-> and Sealing AI-Agent Security Findings with .sova](https://doi.org/10.5281/zenodo.24290458)
-> (DOI 10.5281/zenodo.24290458).
+> **Preprint, version 1.2:** [Did the Attack Really Work? Auditing, Re-running,
+> and Sealing AI-Agent Security Findings with .sova](https://doi.org/10.5281/zenodo.24290457)
+> (DOI 10.5281/zenodo.24321025; the extended version 1.1 is
+> [10.5281/zenodo.24290458](https://doi.org/10.5281/zenodo.24290458)).
 > It checks AgentDojo's attack verdicts against what agents actually did,
 > re-runs recorded attacks on current models, and tests when two runs are
 > comparable, under protocols published before the runs. Every run it reports
